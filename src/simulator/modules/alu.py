@@ -5,7 +5,7 @@ Date: 2025-05-04
 
 from enum import Enum, auto
 from simulator.modules.base_module import BaseModule
-from simulator.common.data_types import BusData
+from simulator.common.data_types import DataBusValue
 from simulator.common.logger import logger
 
 
@@ -22,7 +22,7 @@ class ALUOperation(Enum):
 
 
 class ALUOutputs:
-    result: BusData = BusData(0)
+    result: DataBusValue = DataBusValue(0)
     zero: bool = False
     signed_overflow: bool = False
     carry_flag: bool = False
@@ -31,7 +31,7 @@ class ALUOutputs:
 
 class ALU(BaseModule):
     def execute(
-        self, operand_a: BusData, operand_b: BusData, function: ALUOperation
+        self, operand_a: DataBusValue, operand_b: DataBusValue, function: ALUOperation
     ) -> ALUOutputs:
         """Execute the ALU operation based on the inputs."""
         logger.debug(f"Executing ALU with inputs: {operand_a}, {operand_b}, {function}")
@@ -44,7 +44,7 @@ class ALU(BaseModule):
             # Carry flag is set if the result is greater than the max unsigned value
             outputs.carry_flag = (
                 operand_a.unsigned_value() + operand_b.unsigned_value()
-            ) >= BusData.max_unsigned_value()
+            ) >= DataBusValue.max_unsigned_value()
             # Overflow occurs if the sign of the result is different from the sign of
             # both operands
             outputs.signed_overflow = (

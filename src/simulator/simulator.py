@@ -3,11 +3,21 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-from typing import Generator, Optional
-from dataclasses import dataclass
+from typing import Generator, Optional, Dict
+from dataclasses import dataclass, field
 
 from simulator.common.singleton_meta import SingletonMeta
 from simulator.common.logger import logger
+from simulator.modules.base_module import BaseModule, BaseModuleState
+from simulator.modules.alu import ALU
+from simulator.modules.decoder import DecodeUnit
+from simulator.modules.instruction_memory import (
+    InstructionMemory,
+    InstructionMemoryState,
+)
+from simulator.modules.data_memory import DataMemory, DataMemoryState
+from simulator.modules.register_file import RegisterFile, RegisterFileState
+from simulator.modules.program_counter import ProgramCounter, ProgramCounterState
 
 
 @dataclass
@@ -16,7 +26,7 @@ class SimulatorState:
 
     cycle_count: int = 0
     halted: bool = False
-    # Add other state variables as needed
+    modules: Dict[str, BaseModuleState] = field(default_factory=dict)
 
     def tick(self) -> None:
         """Increment the cycle count"""
@@ -37,11 +47,36 @@ class Simulator(metaclass=SingletonMeta):
     """Singleton class for the simulator."""
 
     _state: SimulatorState
+    _modules: Dict[str, BaseModule] = {}
 
     def __init__(self):
         logger.debug("Initializing Simulator instance.")
         self._state = SimulatorState()
+        self.create_and_initialize_modules()
         logger.info("Simulator instance created.")
+
+    def create_and_initialize_modules(self, binary: bytes = b""):
+        name = "ALU"
+        self._modules[name] = ALU(name)
+        name = "DecodeUnit"
+        self._modules[name] = DecodeUnit(name)
+        name = "InstructionMemory"
+        # Sideload the binary data into the instruction memory
+        instruction_memory_state = InstructionMemoryState(binary)
+        self._state.modules[name] = instruction_memory_state
+        self._modules[name] = InstructionMemory(name, instruction_memory_state)
+        name = "DataMemory"
+        data_memory_state = DataMemoryState()
+        self._state.modules[name] = data_memory_state
+        self._modules[name] = DataMemory(name, data_memory_state)
+        name = "RegisterFile"
+        register_file_state = RegisterFileState()
+        self._state.modules[name] = register_file_state
+        self._modules[name] = RegisterFile(name, register_file_state)
+        name = "ProgramCounter"
+        program_counter_state = ProgramCounterState()
+        self._state.modules[name] = program_counter_state
+        self._modules[name] = ProgramCounter(name, program_counter_state)
 
     def _execute_cycle(self) -> SimulatorState:
         """Execute a single cycle of the simulation."""

@@ -4,11 +4,16 @@ Date: 2025-05-04
 """
 
 from dataclasses import dataclass
-from simulator.common.config import DATA_WIDTH
+from typing import ClassVar, Self
+from simulator.common.config import (
+    DATA_WIDTH,
+    INSTRUCTION_ADDRESS_WIDTH,
+    DATA_ADDRESS_WIDTH,
+)
 
 
 @dataclass(frozen=True)
-class BusData:
+class BusValue:
     """Class representing a bus data type.
 
     Attributes:
@@ -16,26 +21,27 @@ class BusData:
     """
 
     value: int
+    _bus_width: ClassVar[int] = DATA_WIDTH
 
     def __post_init__(self):
         """Post-initialization to ensure value is within bounds."""
         # Ensure the value is within the union of signed and unsigned ranges
         if not (self.min_signed_value() <= self.value <= self.max_unsigned_value()):
             raise ValueError(f"Value {self.value} is out of bounds for bus data type.")
-        object.__setattr__(self, "value", self.value % (2**DATA_WIDTH))
+        object.__setattr__(self, "value", self.value % (2**self._bus_width))
 
     def bit_length(self) -> int:
         """Return the bit length of the data."""
-        return DATA_WIDTH
+        return self._bus_width
 
     def unsigned_value(self) -> int:
         """Return the unsigned value of the bus data."""
-        return self.value % (2**DATA_WIDTH)
+        return self.value % (2**self._bus_width)
 
     def signed_value(self) -> int:
         """Return the signed value of the bus data."""
         if self.unsigned_value() > self.max_signed_value():
-            return self.unsigned_value() - 2**DATA_WIDTH
+            return self.unsigned_value() - 2**self._bus_width
         return self.unsigned_value()
 
     def is_negative(self) -> bool:
@@ -47,54 +53,54 @@ class BusData:
         """Return the minimum value of the bus data."""
         return 0
 
-    @staticmethod
-    def max_unsigned_value() -> int:
+    @classmethod
+    def max_unsigned_value(cls: type[Self]) -> int:
         """Return the maximum value of the bus data."""
-        return 2**DATA_WIDTH - 1
+        return 2**cls._bus_width - 1
 
-    @staticmethod
-    def min_signed_value() -> int:
+    @classmethod
+    def min_signed_value(cls: type[Self]) -> int:
         """Return the minimum signed value of the bus data."""
-        return -(2 ** (DATA_WIDTH - 1))
+        return -(2 ** (cls._bus_width - 1))
 
-    @staticmethod
-    def max_signed_value() -> int:
+    @classmethod
+    def max_signed_value(cls: type[Self]) -> int:
         """Return the maximum signed value of the bus data."""
-        return 2 ** (DATA_WIDTH - 1) - 1
+        return 2 ** (cls._bus_width - 1) - 1
 
-    def __add__(self, other: "BusData") -> "BusData":
-        """Add two BusData objects."""
-        return BusData(
-            (self.unsigned_value() + other.unsigned_value()) % (2**DATA_WIDTH)
+    def __add__(self, other: Self) -> Self:
+        """Add two DataBusValue objects."""
+        return self.__class__(
+            (self.unsigned_value() + other.unsigned_value()) % (2**self._bus_width)
         )
 
-    def __sub__(self, other: "BusData") -> "BusData":
-        """Subtract two BusData objects."""
-        return BusData(
-            (self.unsigned_value() - other.unsigned_value()) % (2**DATA_WIDTH)
+    def __sub__(self, other: Self) -> Self:
+        """Subtract two DataBusValue objects."""
+        return self.__class__(
+            (self.unsigned_value() - other.unsigned_value()) % (2**self._bus_width)
         )
 
-    def __and__(self, other: "BusData") -> "BusData":
-        """Bitwise AND of two BusData objects."""
-        return BusData(self.unsigned_value() & other.unsigned_value())
+    def __and__(self, other: Self) -> Self:
+        """Bitwise AND of two DataBusValue objects."""
+        return self.__class__(self.unsigned_value() & other.unsigned_value())
 
-    def __or__(self, other: "BusData") -> "BusData":
-        """Bitwise OR of two BusData objects."""
-        return BusData(self.unsigned_value() | other.unsigned_value())
+    def __or__(self, other: Self) -> Self:
+        """Bitwise OR of two DataBusValue objects."""
+        return self.__class__(self.unsigned_value() | other.unsigned_value())
 
-    def __xor__(self, other: "BusData") -> "BusData":
-        """Bitwise XOR of two BusData objects."""
-        return BusData(self.unsigned_value() ^ other.unsigned_value())
+    def __xor__(self, other: Self) -> Self:
+        """Bitwise XOR of two DataBusValue objects."""
+        return self.__class__(self.unsigned_value() ^ other.unsigned_value())
 
-    def __invert__(self) -> "BusData":
-        """Bitwise NOT of the BusData object."""
+    def __invert__(self) -> Self:
+        """Bitwise NOT of the DataBusValue object."""
         inverted_value = ~self.unsigned_value() & self.max_unsigned_value()
-        return BusData(inverted_value)
+        return self.__class__(inverted_value)
 
     def __str__(self) -> str:
-        """String representation of the BusData object."""
+        """String representation of the DataBusValue object."""
         return (
-            "BusData("
+            "DataBusValue("
             + f"value={self.value}, "
             + f"unsigned={self.unsigned_value()}, "
             + f"signed={self.signed_value()}, "
@@ -102,5 +108,35 @@ class BusData:
         )
 
     def to_binary(self) -> str:
-        """Return the binary representation of the BusData object."""
-        return format(self.unsigned_value(), f"0{DATA_WIDTH}b")
+        """Return the binary representation of the DataBusValue object."""
+        return format(self.unsigned_value(), f"0{self._bus_width}b")
+
+
+class DataBusValue(BusValue):
+    """Class representing a data bus value.
+
+    Inherits from BusValue and adds additional functionality
+    specific to data buses.
+    """
+
+    pass
+
+
+class InstructionAddressBusValue(BusValue):
+    """Class representing an instruction address bus value.
+
+    Inherits from BusValue and adds additional functionality
+    specific to instruction address buses.
+    """
+
+    _bus_width: ClassVar[int] = INSTRUCTION_ADDRESS_WIDTH
+
+
+class DataAddressBusValue(BusValue):
+    """Class representing a data address bus value.
+
+    Inherits from BusValue and adds additional functionality
+    specific to data address buses.
+    """
+
+    _bus_width: ClassVar[int] = DATA_ADDRESS_WIDTH
