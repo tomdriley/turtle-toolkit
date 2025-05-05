@@ -8,15 +8,24 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "mypy (>=1.15.0,<2.0.0)",
-    "pytest (>=8.3.5,<9.0.0)",
-    "flake8 (>=7.2.0,<8.0.0)",
-    "black (>=25.1.0,<26.0.0)"
+    "pyyaml (>=6.0.2,<7.0.0)"
 ]
 
 [tool.poetry]
 packages = [{include = "simulator", from = "src"}]
 
+[tool.poetry.group.dev.dependencies]
+flake8-pyproject = "^1.2.3"
+mypy = "^1.15.0"
+pytest = "^8.3.5"
+flake8 = "^7.2.0"
+black = "^25.1.0"
+
+[tool.black]
+line-length = 88
+
+[tool.flake8]
+max-line-length = 88
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

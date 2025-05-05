@@ -1,0 +1,4 @@
+data_width: 8
+instruction_width: 16
+instruction_address_width: 12
+data_address_width: 12
