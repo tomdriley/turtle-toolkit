@@ -60,7 +60,25 @@ class ALU(BaseModule):
             outputs.signed_overflow = (
                 operand_a.is_negative() != operand_b.is_negative()
             ) and (outputs.result.is_negative() != operand_a.is_negative())
-
+        elif function == ALUOperation.AND:
+            # Perform bitwise AND
+            outputs.result = operand_a & operand_b
+        elif function == ALUOperation.OR:
+            # Perform bitwise OR
+            outputs.result = operand_a | operand_b
+        elif function == ALUOperation.XOR:
+            # Perform bitwise XOR
+            outputs.result = operand_a ^ operand_b
+        elif function == ALUOperation.INVERT:
+            # Perform bitwise NOT
+            outputs.result = ~operand_a
+        elif function == ALUOperation.BUFFER:
+            # Buffer operation (no change)
+            outputs.result = operand_a
+        else:
+            raise ValueError(f"Invalid ALU operation: {function}")
+        # Set the zero flag if the result is zero
         outputs.zero = outputs.result.unsigned_value() == 0
+        # Set the negative flag if the result is negative
         outputs.negative = outputs.result.is_negative()
         return outputs

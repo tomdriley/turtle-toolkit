@@ -73,3 +73,34 @@ class BusData:
         return BusData(
             (self.unsigned_value() - other.unsigned_value()) % (2**DATA_WIDTH)
         )
+
+    def __and__(self, other: "BusData") -> "BusData":
+        """Bitwise AND of two BusData objects."""
+        return BusData(self.unsigned_value() & other.unsigned_value())
+
+    def __or__(self, other: "BusData") -> "BusData":
+        """Bitwise OR of two BusData objects."""
+        return BusData(self.unsigned_value() | other.unsigned_value())
+
+    def __xor__(self, other: "BusData") -> "BusData":
+        """Bitwise XOR of two BusData objects."""
+        return BusData(self.unsigned_value() ^ other.unsigned_value())
+
+    def __invert__(self) -> "BusData":
+        """Bitwise NOT of the BusData object."""
+        inverted_value = ~self.unsigned_value() & self.max_unsigned_value()
+        return BusData(inverted_value)
+
+    def __str__(self) -> str:
+        """String representation of the BusData object."""
+        return (
+            "BusData("
+            + f"value={self.value}, "
+            + f"unsigned={self.unsigned_value()}, "
+            + f"signed={self.signed_value()}, "
+            + f"binary={self.to_binary()})"
+        )
+
+    def to_binary(self) -> str:
+        """Return the binary representation of the BusData object."""
+        return format(self.unsigned_value(), f"0{DATA_WIDTH}b")
