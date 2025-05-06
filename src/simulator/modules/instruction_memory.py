@@ -27,21 +27,37 @@ class InstructionMemoryState(BaseModuleState):
 
 
 class InstructionMemory(BaseModule):
-    def __init__(self, name: str, state: InstructionMemoryState) -> None:
-        super().__init__(name, state)
-        self._state = state  # redundant, but for clarity of the type
+    def __init__(self, name: str) -> None:
+        self._state = InstructionMemoryState(memory=b"")
+        super().__init__(name, self._state)
 
-    def fetch(self, address: InstructionAddressBusValue) -> Instruction:
-        """Fetch instruction from memory."""
-        if address.unsigned_value() >= len(self._state.memory):
-            raise ValueError(
-                f"Segmentation fault: address {address} is out of bounds. "
-                + f"Memory size is {len(self._state.memory)} bytes."
-            )
-        instruction = Instruction(
-            raw_bytes=self._state.memory[
-                address.unsigned_value() : address.unsigned_value()
-                + INSTRUCTION_WIDTH // 8
-            ]
-        )
-        return instruction
+    def side_load_binary(self, binary: bytes) -> None:
+        """Load binary data into memory."""
+        self._state.memory = binary
+
+    # def fetch(self, address: InstructionAddressBusValue) -> Instruction:
+    #     """Fetch instruction from memory."""
+    #     if address.unsigned_value() >= len(self._state.memory):
+    #         raise ValueError(
+    #             f"Segmentation fault: address {address} is out of bounds. "
+    #             + f"Memory size is {len(self._state.memory)} bytes."
+    #         )
+    #     instruction = Instruction(
+    #         raw_bytes=self._state.memory[
+    #             address.unsigned_value() : address.unsigned_value()
+    #             + INSTRUCTION_WIDTH // 8
+    #         ]
+    #     )
+    #     return instruction
+
+    def request_fetch(self, address: InstructionAddressBusValue) -> None:
+        raise NotImplementedError()
+
+    def fetch_ready(self) -> bool:
+        raise NotImplementedError()
+
+    def get_fetch_result(self) -> Instruction:
+        raise NotImplementedError()
+
+    def update_state(self) -> None:
+        raise NotImplementedError()

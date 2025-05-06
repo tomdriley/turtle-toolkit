@@ -23,7 +23,7 @@ black = "^25.1.0"
 
 [tool.black]
 line-length = 88
-target-version = ["py3.13"]
+target-version = ["py313"]
 
 [tool.flake8]
 max-line-length = 88

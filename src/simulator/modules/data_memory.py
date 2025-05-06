@@ -4,23 +4,32 @@ Date: 2025-05-04
 """
 
 from simulator.modules.base_module import BaseModule, BaseModuleState
+from simulator.common.data_types import DataAddressBusValue, DataBusValue
 
 
 class DataMemoryState(BaseModuleState):
-    def __init__(self):
-        super().__init__()
-        self.memory = {}  # Initialize data memory
+    pass
 
 
 class DataMemory(BaseModule):
-    def __init__(self, name: str, state: DataMemoryState):
-        super().__init__(name)
-        self.state = state
+    def __init__(self, name: str) -> None:
+        self.state = DataMemoryState()
+        super().__init__(name, self.state)
 
-    def read(self, address):
-        """Read data from memory."""
-        return self.state.memory.get(address, 0)
+    def request_load(self, address: DataAddressBusValue):
+        raise NotImplementedError()
 
-    def write(self, address, value):
-        """Write data to memory."""
-        self.state.memory[address] = value
+    def load_ready(self) -> bool:
+        raise NotImplementedError()
+
+    def get_load_result(self) -> DataBusValue:
+        raise NotImplementedError()
+
+    def request_store(self, address: DataAddressBusValue, value: DataBusValue):
+        raise NotImplementedError()
+
+    def store_complete(self) -> bool:
+        raise NotImplementedError()
+
+    def update_state(self) -> None:
+        raise NotImplementedError()

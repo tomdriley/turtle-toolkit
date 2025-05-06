@@ -4,23 +4,55 @@ Date: 2025-05-04
 """
 
 from simulator.modules.base_module import BaseModule, BaseModuleState
+from simulator.common.data_types import (
+    DataBusValue,
+    DataAddressBusValue,
+    InstructionAddressBusValue,
+)
+
+
+class StatusRegisterValue:
+    pass
+
+
+class RegisterIndex:
+    pass
 
 
 class RegisterFileState(BaseModuleState):
-    def __init__(self):
-        super().__init__()
-        self.registers = [0] * 32  # Initialize 32 registers
+    pass
 
 
 class RegisterFile(BaseModule):
-    def __init__(self, name: str, state: RegisterFileState):
-        super().__init__(name)
-        self.state = state
+    def __init__(self, name: str):
+        self.state = RegisterFileState()
+        super().__init__(name, self.state)
 
-    def read(self, register_index):
-        """Read value from a register."""
-        return self.state.registers[register_index]
+    def get_acc_value(self):
+        raise NotImplementedError()
 
-    def write(self, register_index, value):
-        """Write value to a register."""
-        self.state.registers[register_index] = value
+    def get_register_value(self, register_index: RegisterIndex) -> DataBusValue:
+        raise NotImplementedError()
+
+    def get_dmar_value(self) -> DataAddressBusValue:
+        raise NotImplementedError()
+
+    def get_imar_value(self) -> InstructionAddressBusValue:
+        raise NotImplementedError()
+
+    def set_next_register_value(
+        self, register_index: RegisterIndex, value: DataBusValue
+    ) -> None:
+        raise NotImplementedError()
+
+    def get_status_register_value(self) -> StatusRegisterValue:
+        raise NotImplementedError()
+
+    def set_next_status_register_value(self, value: StatusRegisterValue) -> None:
+        raise NotImplementedError()
+
+    def set_next_acc_value(self, value: DataBusValue) -> None:
+        raise NotImplementedError()
+
+    def update_state(self) -> None:
+        raise NotImplementedError()

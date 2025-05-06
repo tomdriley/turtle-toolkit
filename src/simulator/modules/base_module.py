@@ -23,6 +23,10 @@ class BaseModule(ABC):
         self._state = state
         self._initialize()
 
+    def get_state_ref(self) -> BaseModuleState:
+        """Get a reference to the state of the module."""
+        return self._state
+
     def _initialize(self) -> None:
         """Initialize the module."""
         logger.debug(f"Initializing module: {self.name}")

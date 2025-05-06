@@ -9,7 +9,7 @@ from simulator.common.data_types import DataBusValue
 from simulator.common.logger import logger
 
 
-class ALUOperation(Enum):
+class ALUFunction(Enum):
     """Enum for ALU operations."""
 
     ADD = auto()
@@ -31,14 +31,14 @@ class ALUOutputs:
 
 class ALU(BaseModule):
     def execute(
-        self, operand_a: DataBusValue, operand_b: DataBusValue, function: ALUOperation
+        self, operand_a: DataBusValue, operand_b: DataBusValue, function: ALUFunction
     ) -> ALUOutputs:
         """Execute the ALU operation based on the inputs."""
         logger.debug(f"Executing ALU with inputs: {operand_a}, {operand_b}, {function}")
 
         outputs = ALUOutputs()
 
-        if function == ALUOperation.ADD:
+        if function == ALUFunction.ADD:
             # Perform addition
             outputs.result = operand_a + operand_b
             # Carry flag is set if the result is greater than the max unsigned value
@@ -50,7 +50,7 @@ class ALU(BaseModule):
             outputs.signed_overflow = (
                 operand_a.is_negative() == operand_b.is_negative()
             ) and (outputs.result.is_negative() != operand_a.is_negative())
-        elif function == ALUOperation.SUBTRACT:
+        elif function == ALUFunction.SUBTRACT:
             # Perform subtraction
             outputs.result = operand_a - operand_b
             # Carry flag is set if there is a borrow
@@ -60,19 +60,19 @@ class ALU(BaseModule):
             outputs.signed_overflow = (
                 operand_a.is_negative() != operand_b.is_negative()
             ) and (outputs.result.is_negative() != operand_a.is_negative())
-        elif function == ALUOperation.AND:
+        elif function == ALUFunction.AND:
             # Perform bitwise AND
             outputs.result = operand_a & operand_b
-        elif function == ALUOperation.OR:
+        elif function == ALUFunction.OR:
             # Perform bitwise OR
             outputs.result = operand_a | operand_b
-        elif function == ALUOperation.XOR:
+        elif function == ALUFunction.XOR:
             # Perform bitwise XOR
             outputs.result = operand_a ^ operand_b
-        elif function == ALUOperation.INVERT:
+        elif function == ALUFunction.INVERT:
             # Perform bitwise NOT
             outputs.result = ~operand_a
-        elif function == ALUOperation.BUFFER:
+        elif function == ALUFunction.BUFFER:
             # Buffer operation (no change)
             outputs.result = operand_a
         else:
