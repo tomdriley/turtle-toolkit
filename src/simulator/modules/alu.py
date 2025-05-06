@@ -23,10 +23,8 @@ class ALUFunction(Enum):
 
 class ALUOutputs:
     result: DataBusValue = DataBusValue(0)
-    zero: bool = False
     signed_overflow: bool = False
     carry_flag: bool = False
-    negative: bool = False
 
 
 class ALU(BaseModule):
@@ -77,8 +75,4 @@ class ALU(BaseModule):
             outputs.result = operand_a
         else:
             raise ValueError(f"Invalid ALU operation: {function}")
-        # Set the zero flag if the result is zero
-        outputs.zero = outputs.result.unsigned_value() == 0
-        # Set the negative flag if the result is negative
-        outputs.negative = outputs.result.is_negative()
         return outputs

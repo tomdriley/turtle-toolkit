@@ -11,7 +11,7 @@ from simulator.common.logger import logger
 from simulator.common.data_types import DataBusValue
 from simulator.modules.base_module import BaseModuleState
 from simulator.modules.alu import ALU
-from simulator.modules.decoder import DecodeUnit
+from simulator.modules.decoder import DecodeUnit, DecodedInstruction
 from simulator.modules.instruction_memory import (
     InstructionMemory,
 )
@@ -29,7 +29,7 @@ class SimulatorState:
     stalled: bool = False
     modules: Dict[str, BaseModuleState] = field(default_factory=dict)
     acc_next: Optional[DataBusValue] = None
-    acc_value: Optional[DataBusValue] = None
+    acc_value: DataBusValue = DataBusValue(0)
 
     def tick(self) -> None:
         """Increment the cycle count"""
@@ -79,121 +79,202 @@ class Simulator(metaclass=SingletonMeta):
     def _execute_cycle(self) -> SimulatorState:
         """Execute a single cycle of the simulation."""
         logger.debug(f"Executing cycle {self._state.cycle_count}.")
+
+        # Fetch stage
+        if not self._handle_fetch_stage():
+            return self._state
+
+        # Decode stage
+        decoded_instruction = self._handle_decode_stage()
+        if decoded_instruction is None:
+            return self._state
+
+        # Execute stage
+        if not self._handle_execute_stage(decoded_instruction):
+            return self._state
+
+        # Memory stage
+        if not self._handle_memory_stage(decoded_instruction):
+            return self._state
+
+        # Update program counter
+        self._update_program_counter(decoded_instruction)
+
+        return self._state
+
+    def _handle_fetch_stage(self) -> bool:
+        """Handle the fetch stage of the pipeline.
+        Returns False if stalled."""
         instruction_address = self._program_counter.get_current_instruction_address()
         logger.debug(f"Fetching instruction from address {instruction_address}.")
         self._instruction_memory.request_fetch(instruction_address)
-        self._state.stalled = not self._instruction_memory.fetch_ready()
-        if self._state.stalled:
+
+        if not self._instruction_memory.fetch_ready():
+            self._state.stalled = True
             logger.debug("Instruction fetch not ready, skipping this cycle.")
-            return self._state
-        else:
-            logger.debug("Instruction fetch ready, proceeding.")
+            return False
+
+        logger.debug("Instruction fetch ready, proceeding.")
+        return True
+
+    def _handle_decode_stage(self) -> Optional[DecodedInstruction]:
+        """Handle the decode stage of the pipeline.
+        Returns None if the instruction should be skipped."""
         instruction = self._instruction_memory.get_fetch_result()
         logger.debug(f"Fetched instruction: {instruction.raw_bytes.hex()}.")
+
         decoded_instruction = self._decode_unit.decode(instruction)
+
         if decoded_instruction.nop_instruction:
             logger.debug("NOP instruction encountered, skipping this cycle.")
-            return self._state
+            return None
+
         if decoded_instruction.halt_instruction:
             logger.info("HALT instruction encountered, stopping simulation.")
             self._state.halted = True
-            return self._state
+            return None
+
+        return decoded_instruction
+
+    def _handle_execute_stage(self, decoded_instruction: DecodedInstruction) -> bool:
+        """Handle the execute stage of the pipeline.
+        Returns False if stalled."""
+        # Get accumulator value
         self._state.acc_value = self._register_file.get_acc_value()
         logger.debug(f"Accumulator value: {self._state.acc_value}.")
+
+        # Handle ALU operations
+        if decoded_instruction.alu_instruction:
+            operand_b = self._get_alu_operand_b(decoded_instruction)
+            if not self._execute_alu_operation(decoded_instruction, operand_b):
+                return False
+
+        # Handle register operations
+        elif decoded_instruction.register_file_instruction:
+            if not self._handle_register_operation(decoded_instruction):
+                return False
+
+        return True
+
+    def _get_alu_operand_b(
+        self, decoded_instruction: DecodedInstruction
+    ) -> DataBusValue:
+        """Get the second operand for ALU operations."""
         if decoded_instruction.alu_immediate_instruction:
-            operand_b_bus_value = decoded_instruction.immediate_data_value
-            logger.debug(f"Using immediate value: {operand_b_bus_value}.")
+            operand_b = decoded_instruction.immediate_data_value
+            logger.debug(f"Using immediate value: {operand_b}.")
         else:
-            operand_b_bus_value = self._register_file.get_register_value(
+            operand_b = self._register_file.get_register_value(
                 decoded_instruction.register_index
             )
-            logger.debug(f"Using register value: {operand_b_bus_value}.")
-        if self._state.acc_value is not None:
-            alu_outputs = self._alu.execute(
-                self._state.acc_value,
-                operand_b_bus_value,
-                decoded_instruction.alu_function,
-            )
-        else:
-            logger.fatal("Accumulator value is None, cannot execute ALU instruction.")
-            raise ValueError(
-                "Accumulator value is None, cannot execute ALU instruction."
-            )
-        if decoded_instruction.alu_instruction:
-            self._state.acc_next = alu_outputs.result
-            logger.debug(f"ALU result: {self._state.acc_next}.")
-        elif decoded_instruction.memory_instruction and decoded_instruction.memory_load:
-            self._data_memory.request_load(self._register_file.get_dmar_value())
-            self._state.stalled = not self._data_memory.load_ready()
-            if self._state.stalled:
-                logger.debug("Memory load not ready, skipping this cycle.")
-                return self._state
-            else:
-                self._state.acc_next = self._data_memory.get_load_result()
-                logger.debug(f"Memory load result: {self._state.acc_next}.")
-        elif (
-            decoded_instruction.register_file_instruction
-            and decoded_instruction.register_file_set
-        ):
+            logger.debug(f"Using register value: {operand_b}.")
+        return operand_b
+
+    def _execute_alu_operation(
+        self, decoded_instruction: DecodedInstruction, operand_b: DataBusValue
+    ) -> bool:
+        """Execute ALU operation and update state."""
+        alu_outputs = self._alu.execute(
+            self._state.acc_value,
+            operand_b,
+            decoded_instruction.alu_function,
+        )
+        self._state.acc_next = alu_outputs.result
+        self._register_file.set_next_status_register_value(
+            alu_outputs.signed_overflow, alu_outputs.carry_flag
+        )
+        logger.debug(f"ALU result: {self._state.acc_next}.")
+        return True
+
+    def _handle_register_operation(
+        self, decoded_instruction: DecodedInstruction
+    ) -> bool:
+        """Handle register file operations."""
+        if decoded_instruction.register_file_set:
             self._state.acc_next = decoded_instruction.immediate_data_value
-        elif (
-            decoded_instruction.register_file_instruction
-            and decoded_instruction.register_file_get
-        ):
+            logger.debug(f"Set accumulator to immediate value: {self._state.acc_next}.")
+        elif decoded_instruction.register_file_get:
             self._state.acc_next = self._register_file.get_register_value(
                 decoded_instruction.register_index
             )
-        else:
-            self._state.acc_next = self._state.acc_value
-        if (
-            decoded_instruction.register_file_instruction
-            and decoded_instruction.register_file_put
-        ):
+            logger.debug(
+                f"Get register {decoded_instruction.register_index} value: {self._state.acc_next}."
+            )
+        elif decoded_instruction.register_file_put:
             self._register_file.set_next_register_value(
                 decoded_instruction.register_index, self._state.acc_value
             )
             logger.debug(
-                f"Register {decoded_instruction.register_index} set to {self._state.acc_value}."
+                f"Set status register to {decoded_instruction.immediate_data_value}."
             )
-        if decoded_instruction.memory_instruction and decoded_instruction.memory_store:
-            self._data_memory.request_store(
-                self._register_file.get_dmar_value(), self._state.acc_value
-            )
-            self._state.stalled = not self._data_memory.store_complete()
-            if self._state.stalled:
-                logger.debug("Memory store not complete, skipping this cycle.")
-                return self._state
-            else:
-                self._state.acc_next = self._data_memory.get_load_result()
-                logger.debug(
-                    f"Stored {self._state.acc_value} to memory address {self._register_file.get_dmar_value()}."
-                )
+        else:
+            logger.fatal("Invalid register file operation. This should never happen.")
+            raise RuntimeError("Invalid register file operation.")
+
+        return True
+
+    def _handle_memory_stage(self, decoded_instruction: DecodedInstruction) -> bool:
+        """Handle the memory stage of the pipeline.
+        Returns False if stalled."""
+        if not decoded_instruction.memory_instruction:
+            return True
+
+        if decoded_instruction.memory_load:
+            return self._handle_memory_load()
+        elif decoded_instruction.memory_store:
+            return self._handle_memory_store()
+        else:
+            logger.fatal("Invalid memory operation. This should never happen.")
+            raise RuntimeError("Invalid memory operation.")
+
+    def _handle_memory_load(self) -> bool:
+        """Handle memory load operation."""
+        self._data_memory.request_load(self._register_file.get_dmar_value())
+        if not self._data_memory.load_ready():
+            self._state.stalled = True
+            logger.debug("Memory load not ready, skipping this cycle.")
+            return False
+
+        self._state.acc_next = self._data_memory.get_load_result()
+        logger.debug(f"Loaded value from memory: {self._state.acc_next}.")
+        return True
+
+    def _handle_memory_store(self) -> bool:
+        """Handle memory store operation."""
+        self._data_memory.request_store(
+            self._register_file.get_dmar_value(), self._state.acc_value
+        )
+        if not self._data_memory.store_complete():
+            self._state.stalled = True
+            logger.debug("Memory store not complete, skipping this cycle.")
+            return False
+
+        logger.debug("Memory store complete.")
+        return True
+
+    def _update_program_counter(self, decoded_instruction: DecodedInstruction) -> None:
+        """Update the program counter based on the instruction type."""
         if decoded_instruction.branch_instruction:
             self._program_counter.conditionally_branch(
                 self._register_file.get_status_register_value(),
                 decoded_instruction.immediate_address_value,
                 decoded_instruction.branch_condition,
             )
-        if decoded_instruction.jump_instruction and decoded_instruction.immediate_jump:
+        elif decoded_instruction.jump_instruction:
+            self._handle_jump_instruction(decoded_instruction)
+        else:
+            self._program_counter.increment()
+
+    def _handle_jump_instruction(self, decoded_instruction: DecodedInstruction) -> None:
+        """Handle different types of jump instructions."""
+        if decoded_instruction.immediate_jump:
             self._program_counter.jump_relative(
                 decoded_instruction.immediate_address_value
             )
-        elif (
-            decoded_instruction.jump_instruction
-            and decoded_instruction.register_jump
-            and decoded_instruction.relative_jump
-        ):
+        elif decoded_instruction.register_jump and decoded_instruction.relative_jump:
             self._program_counter.jump_relative(self._register_file.get_imar_value())
-        elif (
-            decoded_instruction.jump_instruction
-            and decoded_instruction.register_jump
-            and not decoded_instruction.relative_jump
-        ):
+        elif decoded_instruction.register_jump:
             self._program_counter.jump_absolute(self._register_file.get_imar_value())
-        else:
-            self._program_counter.increment()
-        self._register_file.set_next_acc_value(self._state.acc_next)
-        return self._state
 
     def _update_module_states(self) -> None:
         self._register_file.update_state()

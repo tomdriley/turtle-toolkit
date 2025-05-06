@@ -48,7 +48,9 @@ class RegisterFile(BaseModule):
     def get_status_register_value(self) -> StatusRegisterValue:
         raise NotImplementedError()
 
-    def set_next_status_register_value(self, value: StatusRegisterValue) -> None:
+    def set_next_status_register_value(
+        self, signed_overflow: bool, carry_flag: bool
+    ) -> None:
         raise NotImplementedError()
 
     def set_next_acc_value(self, value: DataBusValue) -> None:
