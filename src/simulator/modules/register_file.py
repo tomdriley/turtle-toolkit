@@ -3,6 +3,7 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
+from dataclasses import dataclass
 from simulator.modules.base_module import BaseModule, BaseModuleState
 from simulator.common.data_types import (
     DataBusValue,
@@ -11,8 +12,12 @@ from simulator.common.data_types import (
 )
 
 
+@dataclass
 class StatusRegisterValue:
-    pass
+    zero: bool
+    positive: bool
+    carry_set: bool
+    signed_overflow_set: bool
 
 
 class RegisterIndex:

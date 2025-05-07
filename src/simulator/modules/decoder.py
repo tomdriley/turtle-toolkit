@@ -3,6 +3,7 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
+from enum import Enum, auto
 from simulator.modules.base_module import BaseModule
 from simulator.modules.instruction_memory import Instruction
 from simulator.common.data_types import DataBusValue, InstructionAddressBusValue
@@ -10,8 +11,15 @@ from simulator.modules.register_file import RegisterIndex
 from simulator.modules.alu import ALUFunction
 
 
-class BranchCondition:
-    pass
+class BranchCondition(Enum):
+    ZERO = auto()
+    NOT_ZERO = auto()
+    POSITIVE = auto()
+    NEGATIVE = auto()
+    CARRY_SET = auto()
+    CARRY_CLEARED = auto()
+    OVERFLOW_SET = auto()
+    OVERFLOW_CLEARED = auto()
 
 
 class DecodedInstruction:
