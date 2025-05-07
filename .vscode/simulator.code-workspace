@@ -4,5 +4,11 @@
 			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"github.copilot.chat.agent.thinkingTool": true,
+		"github.copilot.chat.generateTests.codeLens": true,
+		"editor.defaultFormatter": "ms-python.black-formatter",
+		"github.copilot.chat.editor.temporalContext.enabled": true,
+		"github.copilot.chat.edits.temporalContext.enabled": true
+	}
 }
