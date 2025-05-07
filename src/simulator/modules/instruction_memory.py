@@ -35,21 +35,6 @@ class InstructionMemory(BaseModule):
         """Load binary data into memory."""
         self._state.memory = binary
 
-    # def fetch(self, address: InstructionAddressBusValue) -> Instruction:
-    #     """Fetch instruction from memory."""
-    #     if address.unsigned_value() >= len(self._state.memory):
-    #         raise ValueError(
-    #             f"Segmentation fault: address {address} is out of bounds. "
-    #             + f"Memory size is {len(self._state.memory)} bytes."
-    #         )
-    #     instruction = Instruction(
-    #         raw_bytes=self._state.memory[
-    #             address.unsigned_value() : address.unsigned_value()
-    #             + INSTRUCTION_WIDTH // 8
-    #         ]
-    #     )
-    #     return instruction
-
     def request_fetch(self, address: InstructionAddressBusValue) -> None:
         raise NotImplementedError()
 
