@@ -6,7 +6,9 @@ Date: 2025-05-04
 from dataclasses import dataclass
 from simulator.common.data_types import InstructionAddressBusValue
 from simulator.common.config import INSTRUCTION_WIDTH
-from simulator.modules.base_module import BaseModule, BaseModuleState
+from simulator.modules.base_memory import BaseMemory
+
+INSTRUCTION_FETCH_LATENCY_CYCLES = 10
 
 
 @dataclass
@@ -21,28 +23,30 @@ class Instruction:
             )
 
 
-@dataclass
-class InstructionMemoryState(BaseModuleState):
-    memory: bytes
-
-
-class InstructionMemory(BaseModule):
+class InstructionMemory(BaseMemory[InstructionAddressBusValue, Instruction]):
     def __init__(self, name: str) -> None:
-        self._state = InstructionMemoryState(memory=b"")
-        super().__init__(name, self._state)
+        super().__init__(name, INSTRUCTION_FETCH_LATENCY_CYCLES)
 
     def side_load_binary(self, binary: bytes) -> None:
         """Load binary data into memory."""
-        self._state.memory = binary
+        # Clear any existing memory
+        self.state.memory.clear()
+
+        # Split binary into instruction-sized chunks and load into memory
+        chunk_size = INSTRUCTION_WIDTH // 8
+        for addr in range(0, len(binary), chunk_size):
+            chunk = binary[addr : addr + chunk_size]
+            if len(chunk) == chunk_size:  # Only store complete instructions
+                self.state.memory[InstructionAddressBusValue(addr)] = Instruction(chunk)
 
     def request_fetch(self, address: InstructionAddressBusValue) -> None:
-        raise NotImplementedError()
+        """Request a fetch operation from instruction memory."""
+        self._start_operation(address)
 
     def fetch_ready(self) -> bool:
-        raise NotImplementedError()
+        """Check if the fetch operation is complete."""
+        return self.operation_complete()
 
     def get_fetch_result(self) -> Instruction:
-        raise NotImplementedError()
-
-    def update_state(self) -> None:
-        raise NotImplementedError()
+        """Get the result of the fetch operation."""
+        return self._read_value()
