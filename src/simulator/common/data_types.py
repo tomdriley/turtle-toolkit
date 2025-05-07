@@ -48,6 +48,14 @@ class BusValue:
         """Check if the bus data is negative."""
         return self.signed_value() < 0
 
+    def get_slice(self, start: int, end: int) -> Self:
+        """Return a slice of the bus data."""
+        if start < 0 or end > self._bus_width or start >= end:
+            raise ValueError("Invalid slice indices.")
+        mask = (1 << (end - start)) - 1
+        sliced_value = (self.unsigned_value() >> start) & mask
+        return self.__class__(sliced_value)
+
     @staticmethod
     def min_unsigned_value() -> int:
         """Return the minimum value of the bus data."""
@@ -106,6 +114,13 @@ class BusValue:
             + f"signed={self.signed_value()}, "
             + f"binary={self.to_binary()})"
         )
+
+    def __eq__(self, other: object) -> bool:
+        """Check equality of two DataBusValue objects or a DataBusValue and an int."""
+        if isinstance(other, BusValue):
+            return self.unsigned_value() == other.unsigned_value()
+        else:
+            return self.unsigned_value() == other
 
     def to_binary(self) -> str:
         """Return the binary representation of the DataBusValue object."""
