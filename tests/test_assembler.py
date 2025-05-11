@@ -137,6 +137,35 @@ class TestAssembler(unittest.TestCase):
         binary = Assembler.encode_instruction(instructions[0])
         self.assertEqual(binary, INSTRUCTION_HALT)
 
+    def test_nop_macro(self):
+        source = """
+        NOP
+        """
+        instructions, _ = Assembler.parse_assembly(source)
+
+        self.assertEqual(len(instructions), 1)
+        self.assertEqual(instructions[0].opcode, Opcode.ARITH_LOGIC_IMM)
+        self.assertEqual(instructions[0].function, ArithLogicFunction.ADD)
+        self.assertEqual(instructions[0].data_immediate, DataBusValue(0x00))
+
+        binary = Assembler.encode_instruction(instructions[0])
+        self.assertEqual(binary, INSTRUCTION_NOP)
+
+    def test_halt_macro(self):
+        source = """
+        HALT
+        """
+        instructions, _ = Assembler.parse_assembly(source)
+
+        self.assertEqual(len(instructions), 1)
+        self.assertEqual(instructions[0].opcode, Opcode.JUMP_IMM)
+        self.assertEqual(
+            instructions[0].address_immediate, InstructionAddressBusValue(0)
+        )
+
+        binary = Assembler.encode_instruction(instructions[0])
+        self.assertEqual(binary, INSTRUCTION_HALT)
+
 
 if __name__ == "__main__":
     unittest.main()

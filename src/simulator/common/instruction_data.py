@@ -49,6 +49,10 @@ class BranchCondition(Enum):
     OVERFLOW_CLEARED = 0b111
 
 
+NOP_OPCODE_TEXTS = {"NOP"}
+
+HALT_OPCODE_TEXTS = {"HALT"}
+
 ARITH_LOGIC_OPCODE_TEXTS = set(ArithLogicFunction.__members__.keys())
 
 ARITH_LOGIC_IMM_OPCODE_TEXTS = set(

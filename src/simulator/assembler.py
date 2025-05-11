@@ -31,6 +31,8 @@ from simulator.common.instruction_data import (
     ADDR_IMM_OPERAND,
     REG_OPERAND,
     BRANCH_OPCODE_CONDITION_MAP,
+    NOP_OPCODE_TEXTS,
+    HALT_OPCODE_TEXTS,
 )
 
 # Regex: optional label + optional instruction + optional operand
@@ -82,10 +84,27 @@ class Assembler:
                 labels[label] = address
 
             if instr:
+                instr, operand = Assembler.replace_macros(instr, operand)
                 instructions.append(Assembler.parse_instruction(instr, operand))
                 address += INSTRUCTION_WIDTH // 8
 
         return instructions, labels
+
+    @staticmethod
+    def replace_macros(instr: str, operand: Optional[str]) -> Tuple[str, Optional[str]]:
+        """Replace macros with their corresponding instructions."""
+        if instr in NOP_OPCODE_TEXTS:
+            if operand is not None:
+                raise SyntaxError(f"{instr} does not take an operand")
+            return ArithLogicFunction.ADD.name + "I", "0"
+        elif instr in HALT_OPCODE_TEXTS:
+            if operand is not None:
+                raise SyntaxError(f"{instr} does not take an operand")
+            assert (
+                len(JUMP_IMM_OPCODE_TEXTS) == 1
+            ), "JUMP_IMM_OPCODE_TEXTS should have exactly one entry"
+            return next(iter(JUMP_IMM_OPCODE_TEXTS)), "0"
+        return instr, operand
 
     @staticmethod
     def parse_instruction(opcode: str, operand: Optional[str]) -> Instruction:
