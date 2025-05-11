@@ -1,10 +1,14 @@
 import unittest
-from simulator.assembler import Assembler, Instruction
+from simulator.assembler import Assembler
 from simulator.modules.register_file import RegisterIndex
 from simulator.modules.alu import ArithLogicFunction
 from simulator.modules.decoder import BranchCondition
 from simulator.assembler import Opcode, RegMemoryFunction
 from simulator.common.data_types import DataBusValue, InstructionAddressBusValue
+from .binary_macros import (
+    INSTRUCTION_NOP,
+    INSTRUCTION_HALT,
+)
 
 
 class TestAssembler(unittest.TestCase):
@@ -32,15 +36,6 @@ class TestAssembler(unittest.TestCase):
 
         self.assertEqual(instructions[3].opcode, Opcode.ARITH_LOGIC)
         self.assertEqual(instructions[3].function, ArithLogicFunction.INV)
-
-    def test_encode_instruction(self):
-        instr = Instruction(
-            opcode=Opcode.ARITH_LOGIC_IMM,
-            function=ArithLogicFunction.ADD,
-            data_immediate=DataBusValue(0x00),
-        )
-        binary = Assembler.encode_instruction(instr)
-        self.assertEqual(binary, b"\x00\x00")  # Example binary encoding
 
     def test_parse_branch_instructions(self):
         source = """
@@ -112,6 +107,35 @@ class TestAssembler(unittest.TestCase):
         self.assertEqual(instructions[1].opcode, Opcode.ARITH_LOGIC_IMM)
         self.assertEqual(instructions[1].function, ArithLogicFunction.SUB)
         self.assertEqual(instructions[1].data_immediate, DataBusValue(0b1010))
+
+    def test_nop(self):
+        source = """
+        ADDI 0
+        """
+        instructions, _ = Assembler.parse_assembly(source)
+
+        self.assertEqual(len(instructions), 1)
+        self.assertEqual(instructions[0].opcode, Opcode.ARITH_LOGIC_IMM)
+        self.assertEqual(instructions[0].function, ArithLogicFunction.ADD)
+        self.assertEqual(instructions[0].data_immediate, DataBusValue(0x00))
+
+        binary = Assembler.encode_instruction(instructions[0])
+        self.assertEqual(binary, INSTRUCTION_NOP)
+
+    def test_halt(self):
+        source = """
+        JMPI 0
+        """
+        instructions, _ = Assembler.parse_assembly(source)
+
+        self.assertEqual(len(instructions), 1)
+        self.assertEqual(instructions[0].opcode, Opcode.JUMP_IMM)
+        self.assertEqual(
+            instructions[0].address_immediate, InstructionAddressBusValue(0)
+        )
+
+        binary = Assembler.encode_instruction(instructions[0])
+        self.assertEqual(binary, INSTRUCTION_HALT)
 
 
 if __name__ == "__main__":

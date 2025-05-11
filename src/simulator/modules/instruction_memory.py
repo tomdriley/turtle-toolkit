@@ -12,23 +12,23 @@ INSTRUCTION_FETCH_LATENCY_CYCLES = 10
 
 
 @dataclass
-class Instruction:
-    data: bytes | str
+class InstructionBinary:
+    data: bytes
 
     def __repr__(self):
-        if isinstance(self.data, bytes):
-            return f"Instruction({self.data.hex()})"
-        return f"Instruction({self.data})"
+        return f"Instruction({self.data.hex()})"
 
     def __post_init__(self):
         if isinstance(self.data, bytes) and len(self.data) != INSTRUCTION_WIDTH // 8:
             raise ValueError(
                 f"Instruction must be {INSTRUCTION_WIDTH // 8} bytes long, "
-                + f"but got {len(self.raw_bytes)} bytes."
+                + f"but got {len(self.data)} bytes."
             )
+        elif isinstance(self.data, int) and (0 <= self.data < 2**INSTRUCTION_WIDTH):
+            self.data = self.data.to_bytes(INSTRUCTION_WIDTH // 8, byteorder="little")
 
 
-class InstructionMemory(BaseMemory[InstructionAddressBusValue, Instruction]):
+class InstructionMemory(BaseMemory[InstructionAddressBusValue, InstructionBinary]):
     def __init__(self, name: str) -> None:
         super().__init__(name, INSTRUCTION_FETCH_LATENCY_CYCLES)
 
@@ -42,7 +42,9 @@ class InstructionMemory(BaseMemory[InstructionAddressBusValue, Instruction]):
         for addr in range(0, len(binary), chunk_size):
             chunk = binary[addr : addr + chunk_size]
             if len(chunk) == chunk_size:  # Only store complete instructions
-                self.state.memory[InstructionAddressBusValue(addr)] = Instruction(chunk)
+                self.state.memory[InstructionAddressBusValue(addr)] = InstructionBinary(
+                    chunk
+                )
 
     def request_fetch(self, address: InstructionAddressBusValue) -> None:
         """Request a fetch operation from instruction memory."""
@@ -52,6 +54,6 @@ class InstructionMemory(BaseMemory[InstructionAddressBusValue, Instruction]):
         """Check if the fetch operation is complete."""
         return self.operation_complete()
 
-    def get_fetch_result(self) -> Instruction:
+    def get_fetch_result(self) -> InstructionBinary:
         """Get the result of the fetch operation."""
         return self._read_value()

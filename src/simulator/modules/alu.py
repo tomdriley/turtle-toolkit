@@ -3,21 +3,10 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-from enum import Enum
 from simulator.modules.base_module import BaseModule
 from simulator.common.data_types import DataBusValue
 from simulator.common.logger import logger
-
-
-class ArithLogicFunction(Enum):
-    """Enum for ALU operations."""
-
-    ADD = 0b0000
-    SUB = 0b0001
-    AND = 0b0010
-    OR = 0b0100
-    XOR = 0b0101
-    INV = 0b0111
+from simulator.common.instruction_data import ArithLogicFunction
 
 
 class ALUOutputs:

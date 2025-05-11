@@ -121,7 +121,7 @@ class Simulator(metaclass=SingletonMeta):
         """Handle the decode stage of the pipeline.
         Returns None if the instruction should be skipped."""
         instruction = self._instruction_memory.get_fetch_result()
-        logger.debug(f"Fetched instruction: {instruction.data}.")
+        logger.debug(f"Fetched instruction: {instruction}.")
 
         decoded_instruction = self._decode_unit.decode(instruction)
 
@@ -271,9 +271,9 @@ class Simulator(metaclass=SingletonMeta):
             self._program_counter.jump_relative(
                 decoded_instruction.immediate_address_value
             )
-        elif decoded_instruction.register_jump and decoded_instruction.relative_jump:
+        elif decoded_instruction.relative_jump:
             self._program_counter.jump_relative(self._register_file.get_imar_value())
-        elif decoded_instruction.register_jump:
+        else:
             self._program_counter.jump_absolute(self._register_file.get_imar_value())
 
     def _update_module_states(self) -> None:
