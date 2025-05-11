@@ -1,6 +1,7 @@
 import unittest
 from simulator.modules.instruction_memory import InstructionMemory, INSTRUCTION_WIDTH
 from simulator.common.data_types import InstructionAddressBusValue
+from simulator.assembler import Assembler
 
 
 class TestInstructionMemory(unittest.TestCase):
@@ -22,7 +23,7 @@ class TestInstructionMemory(unittest.TestCase):
         binary = instruction1 + instruction2
 
         # Side load the binary
-        self.instruction_memory.side_load_binary(binary)
+        self.instruction_memory.side_load(binary)
 
         # Fetch first instruction
         self.instruction_memory.request_fetch(InstructionAddressBusValue(0))
@@ -31,7 +32,7 @@ class TestInstructionMemory(unittest.TestCase):
             self.instruction_memory.update_state()
         self.assertTrue(self.instruction_memory.fetch_ready())
         result = self.instruction_memory.get_fetch_result()
-        self.assertEqual(result.raw_bytes, instruction1)
+        self.assertEqual(result.data, instruction1)
 
         # Fetch second instruction
         self.instruction_memory.request_fetch(
@@ -41,7 +42,47 @@ class TestInstructionMemory(unittest.TestCase):
             self.instruction_memory.update_state()
         self.assertTrue(self.instruction_memory.fetch_ready())
         result = self.instruction_memory.get_fetch_result()
-        self.assertEqual(result.raw_bytes, instruction2)
+        self.assertEqual(result.data, instruction2)
+
+    def test_fetch_after_side_load_str(self):
+        """Test fetching instructions after side loading a binary"""
+        # Create a test binary with two instructions
+        instruction1 = "SET 10"
+        comment_ignored = "      ; This is a comment"
+        instruction2 = "ADD R1"
+        second_comment = " ; Another comment"
+        program = (
+            instruction1
+            + comment_ignored
+            + "\n"
+            + instruction2
+            + "\n\n\n\n"
+            + second_comment
+        )
+
+        binary = Assembler.assemble(program)
+
+        # Side load the binary
+        self.instruction_memory.side_load(binary)
+
+        # Fetch first instruction
+        self.instruction_memory.request_fetch(InstructionAddressBusValue(0))
+        for _ in range(10):  # INSTRUCTION_FETCH_LATENCY_CYCLES
+            self.assertFalse(self.instruction_memory.fetch_ready())
+            self.instruction_memory.update_state()
+        self.assertTrue(self.instruction_memory.fetch_ready())
+        result = self.instruction_memory.get_fetch_result()
+        self.assertEqual(result.data, Assembler.assemble(instruction1))
+
+        # Fetch second instruction
+        self.instruction_memory.request_fetch(
+            InstructionAddressBusValue(INSTRUCTION_WIDTH // 8)
+        )
+        for _ in range(10):  # INSTRUCTION_FETCH_LATENCY_CYCLES
+            self.instruction_memory.update_state()
+        self.assertTrue(self.instruction_memory.fetch_ready())
+        result = self.instruction_memory.get_fetch_result()
+        self.assertEqual(result.data, Assembler.assemble(instruction2))
 
     def test_fetch_from_unloaded_address(self):
         """Test fetching from an address that hasn't been loaded"""
@@ -65,7 +106,7 @@ class TestInstructionMemory(unittest.TestCase):
     def test_invalid_instruction_size(self):
         """Test that side loading instructions of wrong size fails"""
         invalid_binary = b"\x00" * (INSTRUCTION_WIDTH // 8 - 1)  # One byte too short
-        self.instruction_memory.side_load_binary(invalid_binary)
+        self.instruction_memory.side_load(invalid_binary)
         self.assertEqual(
             len(self.instruction_memory.state.memory), 0
         )  # Should not store incomplete instruction

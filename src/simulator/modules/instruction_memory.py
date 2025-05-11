@@ -13,10 +13,15 @@ INSTRUCTION_FETCH_LATENCY_CYCLES = 10
 
 @dataclass
 class Instruction:
-    raw_bytes: bytes
+    data: bytes | str
+
+    def __repr__(self):
+        if isinstance(self.data, bytes):
+            return f"Instruction({self.data.hex()})"
+        return f"Instruction({self.data})"
 
     def __post_init__(self):
-        if len(self.raw_bytes) != INSTRUCTION_WIDTH // 8:
+        if isinstance(self.data, bytes) and len(self.data) != INSTRUCTION_WIDTH // 8:
             raise ValueError(
                 f"Instruction must be {INSTRUCTION_WIDTH // 8} bytes long, "
                 + f"but got {len(self.raw_bytes)} bytes."
@@ -27,7 +32,7 @@ class InstructionMemory(BaseMemory[InstructionAddressBusValue, Instruction]):
     def __init__(self, name: str) -> None:
         super().__init__(name, INSTRUCTION_FETCH_LATENCY_CYCLES)
 
-    def side_load_binary(self, binary: bytes) -> None:
+    def side_load(self, binary: bytes) -> None:
         """Load binary data into memory."""
         # Clear any existing memory
         self.state.memory.clear()

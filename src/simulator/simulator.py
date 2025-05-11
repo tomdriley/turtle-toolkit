@@ -64,7 +64,7 @@ class Simulator(metaclass=SingletonMeta):
         logger.info("Simulator instance created.")
 
     def initialize_modules(self, binary: bytes = b""):
-        self._instruction_memory.side_load_binary(binary)
+        self._instruction_memory.side_load(binary)
         self._state.modules[self._instruction_memory.name] = (
             self._instruction_memory.get_state_ref()
         )
@@ -121,7 +121,7 @@ class Simulator(metaclass=SingletonMeta):
         """Handle the decode stage of the pipeline.
         Returns None if the instruction should be skipped."""
         instruction = self._instruction_memory.get_fetch_result()
-        logger.debug(f"Fetched instruction: {instruction.raw_bytes.hex()}.")
+        logger.debug(f"Fetched instruction: {instruction.data}.")
 
         decoded_instruction = self._decode_unit.decode(instruction)
 
