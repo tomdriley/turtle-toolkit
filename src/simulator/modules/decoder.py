@@ -21,9 +21,6 @@ from dataclasses import dataclass
 class DecodedInstruction:
     """Class to hold the decoded instruction."""
 
-    # NOP
-    nop_instruction: bool
-
     # Halt
     halt_instruction: bool
 
@@ -69,12 +66,6 @@ class DecodeUnit(BaseModule):
         data_imm_field = (inst >> 8) & 0xFF
 
         return DecodedInstruction(
-            nop_instruction=(
-                branch_field == 0
-                and op_field == Opcode.ARITH_LOGIC_IMM.value
-                and func_field == ArithLogicFunction.ADD.value
-                and data_imm_field == 0
-            ),
             halt_instruction=(
                 branch_field == 0
                 and op_field == Opcode.JUMP_IMM.value

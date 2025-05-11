@@ -5,6 +5,7 @@ Date: 2025-05-04
 
 from typing import Generator, Optional, Dict
 from dataclasses import dataclass, field
+from collections import deque
 
 from simulator.common.singleton_meta import SingletonMeta
 from simulator.common.logger import logger
@@ -18,6 +19,14 @@ from simulator.modules.instruction_memory import (
 from simulator.modules.data_memory import DataMemory
 from simulator.modules.register_file import RegisterFile
 from simulator.modules.program_counter import ProgramCounter
+from simulator.assembler import Assembler
+
+ALU_NAME = "ALU"
+DECODER_NAME = "Decoder"
+INSTRUCTION_MEMORY_NAME = "InstructionMemory"
+DATA_MEMORY_NAME = "DataMemory"
+REGISTER_FILE_NAME = "RegisterFile"
+PROGRAM_COUNTER_NAME = "ProgramCounter"
 
 
 @dataclass
@@ -28,13 +37,6 @@ class SimulatorState:
     halted: bool = False
     stalled: bool = False
     modules: Dict[str, BaseModuleState] = field(default_factory=dict)
-    acc_next: Optional[DataBusValue] = None
-    acc_value: DataBusValue = DataBusValue(0)
-
-    def tick(self) -> None:
-        """Increment the cycle count"""
-        self.cycle_count += 1
-        logger.debug(f"Simulator tick: cycle count is now {self.cycle_count}.")
 
 
 @dataclass
@@ -50,21 +52,19 @@ class Simulator(metaclass=SingletonMeta):
     """Singleton class for the simulator."""
 
     _state: SimulatorState
-    _alu: ALU = ALU("ALU")
-    _decode_unit: DecodeUnit = DecodeUnit("DecodeUnit")
-    _instruction_memory: InstructionMemory = InstructionMemory("InstructionMemory")
-    _data_memory: DataMemory = DataMemory("DataMemory")
-    _register_file: RegisterFile = RegisterFile("RegisterFile")
-    _program_counter: ProgramCounter = ProgramCounter("ProgramCounter")
+    _alu: ALU = ALU(ALU_NAME)
+    _decode_unit: DecodeUnit = DecodeUnit(DECODER_NAME)
+    _instruction_memory: InstructionMemory = InstructionMemory(INSTRUCTION_MEMORY_NAME)
+    _data_memory: DataMemory = DataMemory(DATA_MEMORY_NAME)
+    _register_file: RegisterFile = RegisterFile(REGISTER_FILE_NAME)
+    _program_counter: ProgramCounter = ProgramCounter(PROGRAM_COUNTER_NAME)
 
     def __init__(self):
         logger.debug("Initializing Simulator instance.")
-        self._state = SimulatorState()
-        self.initialize_modules()
+        self.reset()
         logger.info("Simulator instance created.")
 
-    def initialize_modules(self, binary: bytes = b""):
-        self._instruction_memory.side_load(binary)
+    def initialize_modules(self) -> None:
         self._state.modules[self._instruction_memory.name] = (
             self._instruction_memory.get_state_ref()
         )
@@ -111,8 +111,11 @@ class Simulator(metaclass=SingletonMeta):
 
         if not self._instruction_memory.fetch_ready():
             self._state.stalled = True
+            self._program_counter.set_stall(True)
             logger.debug("Instruction fetch not ready, skipping this cycle.")
             return False
+        self._program_counter.set_stall(False)
+        self._state.stalled = False
 
         logger.debug("Instruction fetch ready, proceeding.")
         return True
@@ -125,10 +128,6 @@ class Simulator(metaclass=SingletonMeta):
 
         decoded_instruction = self._decode_unit.decode(instruction)
 
-        if decoded_instruction.nop_instruction:
-            logger.debug("NOP instruction encountered, skipping this cycle.")
-            return None
-
         if decoded_instruction.halt_instruction:
             logger.info("HALT instruction encountered, stopping simulation.")
             self._state.halted = True
@@ -140,8 +139,7 @@ class Simulator(metaclass=SingletonMeta):
         """Handle the execute stage of the pipeline.
         Returns False if stalled."""
         # Get accumulator value
-        self._state.acc_value = self._register_file.get_acc_value()
-        logger.debug(f"Accumulator value: {self._state.acc_value}.")
+        logger.debug(f"Accumulator value: {self._register_file.get_acc_value()}.")
 
         # Handle ALU operations
         if decoded_instruction.alu_instruction:
@@ -175,15 +173,16 @@ class Simulator(metaclass=SingletonMeta):
     ) -> bool:
         """Execute ALU operation and update state."""
         alu_outputs = self._alu.execute(
-            self._state.acc_value,
+            self._register_file.get_acc_value(),
             operand_b,
             decoded_instruction.alu_function,
         )
-        self._state.acc_next = alu_outputs.result
+        acc_next = alu_outputs.result
+        self._register_file.set_next_acc_value(acc_next)
         self._register_file.set_next_status_register_value(
             alu_outputs.signed_overflow, alu_outputs.carry_flag
         )
-        logger.debug(f"ALU result: {self._state.acc_next}.")
+        logger.debug(f"ALU result: {acc_next}.")
         return True
 
     def _handle_register_operation(
@@ -191,18 +190,20 @@ class Simulator(metaclass=SingletonMeta):
     ) -> bool:
         """Handle register file operations."""
         if decoded_instruction.register_file_set:
-            self._state.acc_next = decoded_instruction.immediate_data_value
-            logger.debug(f"Set accumulator to immediate value: {self._state.acc_next}.")
+            acc_next = decoded_instruction.immediate_data_value
+            self._register_file.set_next_acc_value(acc_next)
+            logger.debug(f"Set accumulator to immediate value: {acc_next}.")
         elif decoded_instruction.register_file_get:
-            self._state.acc_next = self._register_file.get_register_value(
+            acc_next = self._register_file.get_register_value(
                 decoded_instruction.register_index
             )
+            self._register_file.set_next_acc_value(acc_next)
             logger.debug(
-                f"Get register {decoded_instruction.register_index} value: {self._state.acc_next}."
+                f"Get register {decoded_instruction.register_index} value: {acc_next}."
             )
         elif decoded_instruction.register_file_put:
             self._register_file.set_next_register_value(
-                decoded_instruction.register_index, self._state.acc_value
+                decoded_instruction.register_index, self._register_file.get_acc_value()
             )
             logger.debug(
                 f"Set status register to {decoded_instruction.immediate_data_value}."
@@ -232,17 +233,22 @@ class Simulator(metaclass=SingletonMeta):
         self._data_memory.request_load(self._register_file.get_dmar_value())
         if not self._data_memory.load_ready():
             self._state.stalled = True
+            self._program_counter.set_stall(True)
             logger.debug("Memory load not ready, skipping this cycle.")
             return False
 
-        self._state.acc_next = self._data_memory.get_load_result()
-        logger.debug(f"Loaded value from memory: {self._state.acc_next}.")
+        self._program_counter.set_stall(False)
+        self._state.stalled = False
+
+        acc_next = self._data_memory.get_load_result()
+        self._register_file.set_next_acc_value(acc_next)
+        logger.debug(f"Loaded value from memory: {acc_next}.")
         return True
 
     def _handle_memory_store(self) -> bool:
         """Handle memory store operation."""
         self._data_memory.request_store(
-            self._register_file.get_dmar_value(), self._state.acc_value
+            self._register_file.get_dmar_value(), self._register_file.get_acc_value()
         )
         if not self._data_memory.store_complete():
             self._state.stalled = True
@@ -283,7 +289,7 @@ class Simulator(metaclass=SingletonMeta):
         self._program_counter.update_state()
 
     def run(
-        self, num_cycles: Optional[int]
+        self, num_cycles: Optional[int] = None
     ) -> Generator[SimulatorState, None, SimulationResult]:
         logger.debug(f"Running simulator for {num_cycles} cycles.")
         cycles_run = 0
@@ -293,7 +299,10 @@ class Simulator(metaclass=SingletonMeta):
                 break
             self._execute_cycle()
             cycles_run += 1
-            self._state.tick()
+            self._state.cycle_count += 1
+            logger.debug(
+                f"Simulator tick: cycle count is now {self._state.cycle_count}."
+            )
             if self._state.halted:
                 logger.info(f"Simulation halted at cycle {self._state.cycle_count}.")
                 break
@@ -302,8 +311,39 @@ class Simulator(metaclass=SingletonMeta):
         logger.info(f"Simulation completed after {self._state.cycle_count} cycles.")
         return SimulationResult(self._state.cycle_count, self._state)
 
+    def run_until_halt(self, max_cycles: Optional[int] = None) -> SimulationResult:
+        gen = self.run(max_cycles)
+        try:
+            deque(gen, maxlen=0)  # Consume the generator to run the simulation
+            next(gen)
+        except StopIteration as e:
+            logger.debug("Simulation completed.")
+            return e.value
+        except Exception as e:
+            logger.error(f"Simulation state: {self._state}")
+            logger.error(f"Simulation failed: {e}")
+        raise RuntimeError("Simulation failed")
+
+    def get_state(self) -> SimulatorState:
+        """Get the current state of the simulator."""
+        return self._state
+
     def reset(self) -> None:
         """Reset the simulator state."""
         logger.debug("Resetting simulator state.")
         self._state = SimulatorState()
+        self.initialize_modules()
         logger.info("Simulator state reset.")
+
+    def load_program(self, program: str) -> None:
+        """Load a program into the instruction memory."""
+        logger.debug("Loading program into instruction memory.")
+        binary = Assembler.assemble(program)
+        self._instruction_memory.side_load(binary)
+        logger.info("Program loaded into instruction memory.")
+
+    def load_binary(self, binary: bytes) -> None:
+        """Load binary data into the instruction memory."""
+        logger.debug("Loading binary data into instruction memory.")
+        self._instruction_memory.side_load(binary)
+        logger.info("Binary data loaded into instruction memory.")

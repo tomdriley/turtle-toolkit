@@ -20,7 +20,6 @@ class TestDecodeUnit(unittest.TestCase):
         # Example binary for NOP instruction
         binary_data = InstructionBinary(INSTRUCTION_NOP)
         decoded = self.decoder.decode(binary_data)
-        self.assertTrue(decoded.nop_instruction)
         self.assertFalse(decoded.halt_instruction)
 
     def test_decode_halt_instruction(self):
@@ -28,7 +27,6 @@ class TestDecodeUnit(unittest.TestCase):
         binary_data = InstructionBinary(INSTRUCTION_HALT)
         decoded = self.decoder.decode(binary_data)
         self.assertTrue(decoded.halt_instruction)
-        self.assertFalse(decoded.nop_instruction)
 
     def test_decode_alu_instruction(self):
         # Example binary for ALU ADD instruction

@@ -15,16 +15,16 @@ class TestProgramCounter(unittest.TestCase):
     def test_increment(self):
         self.program_counter.increment()
         self.program_counter.update_state()
-        self.assertEqual(self.program_counter.get_current_instruction_address(), 1)
+        self.assertEqual(self.program_counter.get_current_instruction_address(), 2)
 
     def test_jump_relative(self):
         # Test positive offset
-        self.program_counter.jump_relative(InstructionAddressBusValue(5))
+        self.program_counter.jump_relative(InstructionAddressBusValue(6))
         self.program_counter.update_state()
-        self.assertEqual(self.program_counter.get_current_instruction_address(), 5)
+        self.assertEqual(self.program_counter.get_current_instruction_address(), 6)
 
         # Test negative offset
-        self.program_counter.jump_relative(InstructionAddressBusValue(-3))
+        self.program_counter.jump_relative(InstructionAddressBusValue(-4))
         self.program_counter.update_state()
         self.assertEqual(self.program_counter.get_current_instruction_address(), 2)
 
@@ -39,10 +39,10 @@ class TestProgramCounter(unittest.TestCase):
             zero=True, positive=False, carry_set=False, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.ZERO
+            status_reg, InstructionAddressBusValue(6), BranchCondition.ZERO
         )
         self.program_counter.update_state()
-        self.assertEqual(self.program_counter.get_current_instruction_address(), 5)
+        self.assertEqual(self.program_counter.get_current_instruction_address(), 6)
 
         # Test no branch when zero flag is clear
         self.program_counter = ProgramCounter("TestPC")  # Reset PC
@@ -50,11 +50,11 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=False, carry_set=False, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.ZERO
+            status_reg, InstructionAddressBusValue(6), BranchCondition.ZERO
         )
         self.program_counter.update_state()
         self.assertEqual(
-            self.program_counter.get_current_instruction_address(), 1
+            self.program_counter.get_current_instruction_address(), 2
         )  # Should increment instead
 
     def test_conditional_branch_positive_flag(self):
@@ -63,10 +63,10 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=True, carry_set=False, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.POSITIVE
+            status_reg, InstructionAddressBusValue(6), BranchCondition.POSITIVE
         )
         self.program_counter.update_state()
-        self.assertEqual(self.program_counter.get_current_instruction_address(), 5)
+        self.assertEqual(self.program_counter.get_current_instruction_address(), 6)
 
         # Test no branch when positive flag is clear
         self.program_counter = ProgramCounter("TestPC")
@@ -74,11 +74,11 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=False, carry_set=False, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.POSITIVE
+            status_reg, InstructionAddressBusValue(6), BranchCondition.POSITIVE
         )
         self.program_counter.update_state()
         self.assertEqual(
-            self.program_counter.get_current_instruction_address(), 1
+            self.program_counter.get_current_instruction_address(), 2
         )  # Should increment instead
 
     def test_conditional_branch_carry_flag(self):
@@ -87,10 +87,10 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=False, carry_set=True, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.CARRY_SET
+            status_reg, InstructionAddressBusValue(6), BranchCondition.CARRY_SET
         )
         self.program_counter.update_state()
-        self.assertEqual(self.program_counter.get_current_instruction_address(), 5)
+        self.assertEqual(self.program_counter.get_current_instruction_address(), 6)
 
         # Test no branch when carry flag is clear
         self.program_counter = ProgramCounter("TestPC")
@@ -98,11 +98,11 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=False, carry_set=False, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.CARRY_SET
+            status_reg, InstructionAddressBusValue(6), BranchCondition.CARRY_SET
         )
         self.program_counter.update_state()
         self.assertEqual(
-            self.program_counter.get_current_instruction_address(), 1
+            self.program_counter.get_current_instruction_address(), 2
         )  # Should increment instead
 
     def test_conditional_branch_overflow_flag(self):
@@ -111,10 +111,10 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=False, carry_set=False, signed_overflow_set=True
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.OVERFLOW_SET
+            status_reg, InstructionAddressBusValue(6), BranchCondition.OVERFLOW_SET
         )
         self.program_counter.update_state()
-        self.assertEqual(self.program_counter.get_current_instruction_address(), 5)
+        self.assertEqual(self.program_counter.get_current_instruction_address(), 6)
 
         # Test no branch when overflow flag is clear
         self.program_counter = ProgramCounter("TestPC")
@@ -122,11 +122,11 @@ class TestProgramCounter(unittest.TestCase):
             zero=False, positive=False, carry_set=False, signed_overflow_set=False
         )
         self.program_counter.conditionally_branch(
-            status_reg, InstructionAddressBusValue(5), BranchCondition.OVERFLOW_SET
+            status_reg, InstructionAddressBusValue(6), BranchCondition.OVERFLOW_SET
         )
         self.program_counter.update_state()
         self.assertEqual(
-            self.program_counter.get_current_instruction_address(), 1
+            self.program_counter.get_current_instruction_address(), 2
         )  # Should increment instead
 
     def test_update_state_without_next_value(self):

@@ -8,11 +8,13 @@ from simulator.modules.base_module import BaseModule, BaseModuleState
 from simulator.common.data_types import InstructionAddressBusValue
 from simulator.modules.register_file import StatusRegisterValue
 from simulator.modules.decoder import BranchCondition
+from simulator.common.config import INSTRUCTION_WIDTH
 
 
 class ProgramCounterState(BaseModuleState):
-    value = 0
-    next_value: Optional[int] = None
+    value = InstructionAddressBusValue(0)
+    next_value: Optional[InstructionAddressBusValue] = None
+    stall: bool = False
 
 
 class ProgramCounter(BaseModule):
@@ -22,15 +24,17 @@ class ProgramCounter(BaseModule):
 
     def increment(self):
         """Increment the program counter."""
-        self.state.next_value = self.state.value + 1
+        self.state.next_value = self.state.value + InstructionAddressBusValue(
+            INSTRUCTION_WIDTH // 8
+        )
 
     def jump_relative(self, offset: InstructionAddressBusValue):
         """Set the program counter to a specific value."""
-        self.state.next_value = self.state.value + offset.signed_value()
+        self.state.next_value = self.state.value + offset
 
     def jump_absolute(self, address: InstructionAddressBusValue):
         """Set the program counter to a specific value."""
-        self.state.next_value = address.unsigned_value()
+        self.state.next_value = address
 
     def conditionally_branch(
         self,
@@ -66,7 +70,14 @@ class ProgramCounter(BaseModule):
         """Get the current instruction address."""
         return self.state.value
 
+    def set_stall(self, stall: bool) -> None:
+        """Set the stall state of the program counter."""
+        self.state.stall = stall
+
     def update_state(self) -> None:
+        if self.state.stall:
+            # If the program counter is stalled, do not update the value.
+            return
         if self.state.next_value is not None:
             self.state.value = self.state.next_value
             self.state.next_value = None
