@@ -38,7 +38,7 @@ class ALU(BaseModule):
             # Carry flag is set if the result is greater than the max unsigned value
             outputs.carry_flag = (
                 operand_a.unsigned_value() + operand_b.unsigned_value()
-            ) >= DataBusValue.max_unsigned_value()
+            ) > DataBusValue.max_unsigned_value()
             # Overflow occurs if the sign of the result is different from the sign of
             # both operands
             outputs.signed_overflow = (
