@@ -1,4 +1,4 @@
-import unittest
+import pytest
 from simulator.modules.decoder import DecodeUnit
 from simulator.modules.instruction_memory import InstructionBinary
 from simulator.common.instruction_data import (
@@ -12,32 +12,36 @@ from .binary_macros import (
 from simulator.assembler import Assembler
 
 
-class TestDecodeUnit(unittest.TestCase):
-    def setUp(self):
-        self.decoder = DecodeUnit("test_decoder")
+@pytest.fixture
+def decoder():
+    return DecodeUnit("test_decoder")
 
-    def test_decode_nop_instruction(self):
-        # Example binary for NOP instruction
-        binary_data = InstructionBinary(INSTRUCTION_NOP)
-        decoded = self.decoder.decode(binary_data)
-        self.assertFalse(decoded.halt_instruction)
 
-    def test_decode_halt_instruction(self):
-        # Example binary for HALT instruction
-        binary_data = InstructionBinary(INSTRUCTION_HALT)
-        decoded = self.decoder.decode(binary_data)
-        self.assertTrue(decoded.halt_instruction)
+def test_decode_nop_instruction(decoder):
+    # Example binary for NOP instruction
+    binary_data = InstructionBinary(INSTRUCTION_NOP)
+    decoded = decoder.decode(binary_data)
+    assert not decoded.halt_instruction
 
-    def test_decode_alu_instruction(self):
-        # Example binary for ALU ADD instruction
-        binary_data = InstructionBinary(Assembler.assemble("ADD R0"))
-        decoded = self.decoder.decode(binary_data)
-        self.assertTrue(decoded.alu_instruction)
-        self.assertEqual(decoded.alu_function, ArithLogicFunction.ADD)
 
-    def test_decode_branch_instruction(self):
-        # Example binary for branch instruction with ZERO condition
-        binary_data = InstructionBinary(Assembler.assemble("BZ 0x04"))
-        decoded = self.decoder.decode(binary_data)
-        self.assertTrue(decoded.branch_instruction)
-        self.assertEqual(decoded.branch_condition, BranchCondition.ZERO)
+def test_decode_halt_instruction(decoder):
+    # Example binary for HALT instruction
+    binary_data = InstructionBinary(INSTRUCTION_HALT)
+    decoded = decoder.decode(binary_data)
+    assert decoded.halt_instruction
+
+
+def test_decode_alu_instruction(decoder):
+    # Example binary for ALU ADD instruction
+    binary_data = InstructionBinary(Assembler.assemble("ADD R0"))
+    decoded = decoder.decode(binary_data)
+    assert decoded.alu_instruction
+    assert decoded.alu_function == ArithLogicFunction.ADD
+
+
+def test_decode_branch_instruction(decoder):
+    # Example binary for branch instruction with ZERO condition
+    binary_data = InstructionBinary(Assembler.assemble("BZ 0x04"))
+    decoded = decoder.decode(binary_data)
+    assert decoded.branch_instruction
+    assert decoded.branch_condition == BranchCondition.ZERO
