@@ -49,6 +49,25 @@ class BranchCondition(Enum):
     OVERFLOW_CLEARED = 0b111
 
 
+class RegisterIndex(Enum):
+    """Enum for register indices."""
+
+    R0 = 0b0000
+    R1 = 0b0001
+    R2 = 0b0010
+    R3 = 0b0011
+    R4 = 0b0100
+    R5 = 0b0101
+    R6 = 0b0110
+    R7 = 0b0111
+    ACC = 0b1000
+    DBAR = 0b1001
+    DOFF = 0b1010
+    IBAR = 0b1101
+    IOFF = 0b1110
+    STATUS = 0b1111
+
+
 NOP_OPCODE_TEXTS = {"NOP"}
 
 HALT_OPCODE_TEXTS = {"HALT"}

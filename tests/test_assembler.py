@@ -1,6 +1,6 @@
 import pytest
 from simulator.assembler import Assembler
-from simulator.modules.register_file import RegisterIndex
+from simulator.common.instruction_data import RegisterIndex
 from simulator.modules.alu import ArithLogicFunction
 from simulator.modules.decoder import BranchCondition
 from simulator.assembler import Opcode, RegMemoryFunction

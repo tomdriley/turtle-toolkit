@@ -10,7 +10,7 @@ from simulator.common.config import INSTRUCTION_WIDTH
 from simulator.modules.instruction_memory import INSTRUCTION_FETCH_LATENCY_CYCLES
 from simulator.assembler import Assembler
 from simulator.common.data_types import DataBusValue
-from simulator.modules.register_file import RegisterIndex
+from simulator.common.instruction_data import RegisterIndex
 
 
 @pytest.fixture

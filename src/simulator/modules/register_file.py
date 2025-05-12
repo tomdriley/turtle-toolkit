@@ -5,7 +5,6 @@ Date: 2025-05-04
 
 from dataclasses import dataclass, field
 from typing import Optional
-from enum import Enum, auto
 from simulator.modules.base_module import BaseModule, BaseModuleState
 from simulator.common.data_types import (
     DataBusValue,
@@ -17,6 +16,7 @@ from simulator.common.config import (
     INSTRUCTION_ADDRESS_WIDTH,
     DATA_ADDRESS_WIDTH,
 )
+from simulator.common.instruction_data import RegisterIndex
 
 
 @dataclass
@@ -25,27 +25,6 @@ class StatusRegisterValue:
     positive: bool
     carry_set: bool
     signed_overflow_set: bool
-
-
-class RegisterIndex(Enum):
-    """Enum for register indices."""
-
-    R0 = 0
-    R1 = 1
-    R2 = 2
-    R3 = 3
-    R4 = 4
-    R5 = 5
-    R6 = 6
-    R7 = 7
-    ACC = auto()
-    DMAR = auto()
-    DBAR = auto()
-    DOFF = auto()
-    IMAR = auto()
-    IBAR = auto()
-    IOFF = auto()
-    STATUS = auto()
 
 
 @dataclass
@@ -64,11 +43,13 @@ class RegisterFileState(BaseModuleState):
             RegisterIndex.R6: DataBusValue(0),
             RegisterIndex.R7: DataBusValue(0),
             RegisterIndex.ACC: DataBusValue(0),
+            RegisterIndex.DBAR: DataBusValue(0),
+            RegisterIndex.DOFF: DataBusValue(0),
+            RegisterIndex.IBAR: DataBusValue(0),
+            RegisterIndex.IOFF: DataBusValue(0),
+            RegisterIndex.STATUS: DataBusValue(3),
         }
     )
-    status_register = StatusRegisterValue(True, True, False, False)
-    data_memory_address = DataAddressBusValue(0)
-    instruction_memory_address = InstructionAddressBusValue(0)
     pending_register: Optional[RegisterIndex] = None
     pending_value: Optional[DataBusValue] = None
     pending_carry_flag: Optional[bool] = None
@@ -86,49 +67,36 @@ class RegisterFile(BaseModule):
         return self.state.registers[RegisterIndex.ACC]
 
     def get_register_value(self, register_index: RegisterIndex) -> DataBusValue:
-        if register_index == RegisterIndex.ACC:
-            return self.get_acc_value()
-        elif register_index == RegisterIndex.DOFF:
-            data_full_address = self.get_dmar_value()
-            data_offset = data_full_address.get_slice(0, DATA_WIDTH - 1)
-            return DataBusValue(data_offset.unsigned_value())
-        elif register_index == RegisterIndex.DBAR:
-            data_full_address = self.get_dmar_value()
-            data_bar = data_full_address.get_slice(DATA_WIDTH, DATA_ADDRESS_WIDTH - 1)
-            return DataBusValue(data_bar.unsigned_value())
-        elif register_index == RegisterIndex.IOFF:
-            full_address = self.get_imar_value()
-            offset = full_address.get_slice(0, DATA_WIDTH - 1)
-            return DataBusValue(offset.unsigned_value())
-        elif register_index == RegisterIndex.IBAR:
-            full_address = self.get_imar_value()
-            bar = full_address.get_slice(DATA_WIDTH, INSTRUCTION_ADDRESS_WIDTH - 1)
-            return DataBusValue(bar.unsigned_value())
-        elif register_index in self.state.registers:
+        if register_index in self.state.registers:
             return self.state.registers[register_index]
-        elif register_index == RegisterIndex.STATUS:
-            return DataBusValue(
-                (
-                    self.state.status_register.zero << 0
-                    | self.state.status_register.positive << 1
-                    | self.state.status_register.carry_set << 2
-                    | self.state.status_register.signed_overflow_set << 3
-                )
-            )
-        elif register_index == RegisterIndex.DMAR:
-            raise IndexError("DMAR can not be read in a single cycle.")
-        elif register_index == RegisterIndex.IMAR:
-            raise IndexError("IMAR can not be read in a single cycle.")
         else:
             raise IndexError(f"Register index {register_index} is not valid.")
 
     def get_dmar_value(self) -> DataAddressBusValue:
         """Get the value of the data memory address register."""
-        return self.state.data_memory_address
+        return DataAddressBusValue(
+            (
+                (
+                    self.state.registers[RegisterIndex.DBAR].unsigned_value()
+                    & ((1 << (DATA_ADDRESS_WIDTH - DATA_WIDTH)) - 1)
+                )
+                << DATA_WIDTH
+            )
+            | self.state.registers[RegisterIndex.DOFF].unsigned_value()
+        )
 
     def get_imar_value(self) -> InstructionAddressBusValue:
         """Get the value of the instruction memory address register."""
-        return self.state.instruction_memory_address
+        return InstructionAddressBusValue(
+            (
+                (
+                    self.state.registers[RegisterIndex.IBAR].unsigned_value()
+                    & ((1 << (INSTRUCTION_ADDRESS_WIDTH - DATA_WIDTH)) - 1)
+                )
+                << DATA_WIDTH
+            )
+            | self.state.registers[RegisterIndex.IOFF].unsigned_value()
+        )
 
     def set_next_register_value(
         self, register_index: RegisterIndex, value: DataBusValue
@@ -138,11 +106,19 @@ class RegisterFile(BaseModule):
 
     def get_status_register_value(self) -> StatusRegisterValue:
         """Get the value of the status register."""
-        return self.state.status_register
+        status_value = self.state.registers[RegisterIndex.STATUS].unsigned_value()
+        return StatusRegisterValue(
+            zero=(status_value >> 0) & 1 == 1,
+            positive=(status_value >> 1) & 1 == 1,
+            carry_set=(status_value >> 2) & 1 == 1,
+            signed_overflow_set=(status_value >> 3) & 1 == 1,
+        )
 
     def set_next_status_register_value(
         self, signed_overflow: bool, carry_flag: bool
     ) -> None:
+        assert isinstance(signed_overflow, bool)
+        assert isinstance(carry_flag, bool)
         self.state.pending_carry_flag = carry_flag
         self.state.pending_signed_overflow = signed_overflow
 
@@ -154,49 +130,7 @@ class RegisterFile(BaseModule):
             raise ValueError(
                 f"Pending value for register {self.state.pending_register} is None."
             )
-        data_addr_offset_mask = DataAddressBusValue(((1 << (DATA_WIDTH)) - 1))
-        instr_addr_offset_mask = InstructionAddressBusValue(((1 << (DATA_WIDTH)) - 1))
-        if (
-            self.state.pending_register == RegisterIndex.DBAR
-            and self.state.pending_value is not None
-        ):
-            self.state.data_memory_address = (
-                (~data_addr_offset_mask)
-                & DataAddressBusValue(
-                    self.state.pending_value.unsigned_value() << DATA_WIDTH
-                )
-            ) | (data_addr_offset_mask & self.state.data_memory_address)
-        elif (
-            self.state.pending_register == RegisterIndex.DOFF
-            and self.state.pending_value is not None
-        ):
-            self.state.data_memory_address = (
-                (data_addr_offset_mask)
-                & DataAddressBusValue(self.state.pending_value.unsigned_value())
-            ) | (~data_addr_offset_mask & self.state.data_memory_address)
-        elif (
-            self.state.pending_register == RegisterIndex.IBAR
-            and self.state.pending_value is not None
-        ):
-            self.state.instruction_memory_address = (
-                (~instr_addr_offset_mask)
-                & InstructionAddressBusValue(
-                    self.state.pending_value.unsigned_value() << DATA_WIDTH
-                )
-            ) | (instr_addr_offset_mask & self.state.instruction_memory_address)
-        elif (
-            self.state.pending_register == RegisterIndex.IOFF
-            and self.state.pending_value is not None
-        ):
-            self.state.instruction_memory_address = (
-                (instr_addr_offset_mask)
-                & InstructionAddressBusValue(self.state.pending_value.unsigned_value())
-            ) | (~instr_addr_offset_mask & self.state.instruction_memory_address)
-        elif self.state.pending_register == RegisterIndex.DMAR:
-            raise IndexError("DMAR can not be written in a single cycle.")
-        elif self.state.pending_register == RegisterIndex.IMAR:
-            raise IndexError("IMAR can not be written in a single cycle.")
-        elif self.state.pending_register == RegisterIndex.STATUS:
+        if self.state.pending_register == RegisterIndex.STATUS:
             raise IndexError("STATUS can not be written directly")
         elif self.state.pending_register == RegisterIndex.ACC:
             raise IndexError("ACC can not be written directly")
@@ -214,26 +148,38 @@ class RegisterFile(BaseModule):
         if self.state.pending_accumulator is not None:
             self.state.registers[RegisterIndex.ACC] = self.state.pending_accumulator
         zero = (
-            self.state.pending_accumulator == 0
+            (self.state.pending_accumulator.unsigned_value() == 0)
             if self.state.pending_accumulator
             else None
         )
         positive = (
-            self.state.pending_accumulator.signed_value() >= 0
+            (self.state.pending_accumulator.signed_value() >= 0)
             if self.state.pending_accumulator
             else None
         )
-        self.state.status_register = StatusRegisterValue(
-            zero if zero is not None else self.state.status_register.zero,
-            positive if positive is not None else self.state.status_register.positive,
-            (
-                self.state.pending_carry_flag
-                if self.state.pending_carry_flag is not None
-                else self.state.status_register.carry_set
-            ),
-            (
-                self.state.pending_signed_overflow
-                if self.state.pending_signed_overflow is not None
-                else self.state.status_register.signed_overflow_set
-            ),
+
+        def resolve_next_bit(current_bit: int, pending_bit: Optional[bool]) -> int:
+            """Resolve the next bit value."""
+            return int(pending_bit) if pending_bit is not None else current_bit
+
+        def compute_next_status_bit(shift: int, pending: Optional[bool]) -> int:
+            """Compute the next status bit."""
+            current_bit = (current_status_value >> shift) & 1
+            return resolve_next_bit(current_bit, pending) << shift
+
+        # Extract the current status register value
+        current_status_value = self.state.registers[
+            RegisterIndex.STATUS
+        ].unsigned_value()
+
+        # Compute the next status register value
+        next_status_value = 0
+        next_status_value |= compute_next_status_bit(0, zero)
+        next_status_value |= compute_next_status_bit(1, positive)
+        next_status_value |= compute_next_status_bit(2, self.state.pending_carry_flag)
+        next_status_value |= compute_next_status_bit(
+            3, self.state.pending_signed_overflow
         )
+
+        # Update the STATUS register with the computed value
+        self.state.registers[RegisterIndex.STATUS] = DataBusValue(next_status_value)

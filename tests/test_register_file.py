@@ -23,8 +23,8 @@ def test_initial_state(register_file):
     status_register_value = register_file.get_status_register_value()
     assert status_register_value.zero == (acc_value == 0)
     assert status_register_value.positive == (acc_value.signed_value() >= 0)
-    assert status_register_value.carry_set == False
-    assert status_register_value.signed_overflow_set == False
+    assert not status_register_value.carry_set
+    assert not status_register_value.signed_overflow_set
     assert register_file.get_dmar_value() == DataBusValue(0)
     assert register_file.get_imar_value() == DataBusValue(0)
     for i in range(8):
@@ -52,8 +52,8 @@ def test_set_and_get_register_value(register_file):
 
 
 def test_set_and_get_status_register_value(register_file):
-    test_signed_overflow = DataBusValue(1)
-    test_carry_flag = DataBusValue(0)
+    test_signed_overflow = True
+    test_carry_flag = False
     current_status = register_file.get_status_register_value()
     expected_status_value = StatusRegisterValue(
         zero=current_status.zero,
@@ -66,8 +66,8 @@ def test_set_and_get_status_register_value(register_file):
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value
 
-    test_signed_overflow_2 = DataBusValue(0)
-    test_carry_flag_2 = DataBusValue(1)
+    test_signed_overflow_2 = False
+    test_carry_flag_2 = True
     expected_status_value_2 = StatusRegisterValue(
         zero=current_status.zero,
         positive=current_status.positive,
@@ -81,8 +81,8 @@ def test_set_and_get_status_register_value(register_file):
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value_2
 
-    test_signed_overflow_3 = DataBusValue(1)
-    test_carry_flag_3 = DataBusValue(1)
+    test_signed_overflow_3 = True
+    test_carry_flag_3 = True
     expected_status_value_3 = StatusRegisterValue(
         zero=current_status.zero,
         positive=current_status.positive,
