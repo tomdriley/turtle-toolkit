@@ -116,7 +116,3 @@ class TestInstructionMemory(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.instruction_memory.get_fetch_result()
         self.assertEqual("No read operation pending.", str(context.exception))
-
-
-if __name__ == "__main__":
-    unittest.main()

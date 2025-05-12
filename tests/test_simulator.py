@@ -241,6 +241,291 @@ class TestSimulator(unittest.TestCase):
             DataBusValue(0b11110000),
         )
 
+    def test_subi_instruction(self):
+        # Test the SUBI instruction
+        source = """
+        SET 5
+        SUBI 2
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(3),
+        )
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_andi_instruction(self):
+        # Test the ANDI instruction
+        source = """
+        SET 0b0110
+        ANDI 0b0101
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0b0100),
+        )
+
+    def test_ori_instruction(self):
+        # Test the ORI instruction
+        source = """
+        SET 0b0010
+        ORI 0b0100
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0b0110),
+        )
+
+    def test_xori_instruction(self):
+        # Test the XORI instruction
+        source = """
+        SET 0b0110
+        XORI 0b0011
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0b0101),
+        )
+
+    def test_jmpi_instruction(self):
+        # Test the JMPI instruction
+        source = """
+        SET 0
+        JMPI 4
+        SET 1
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0),
+        )
+
+    def test_bz_instruction_taken(self):
+        # Test the BZ instruction
+        source = """
+        SET 0
+        BZ 4
+        SET 1
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0),
+        )
+
+    def test_bz_instruction_not_taken(self):
+        # Test the BZ instruction
+        source = """
+        SET 1
+        BZ 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0),
+        )
+
+    def test_bnz_instruction_taken(self):
+        # Test the BNZ instruction
+        source = """
+        SET 1
+        BNZ 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(1),
+        )
+
+    def test_bnz_instruction_not_taken(self):
+        # Test the BNZ instruction
+        source = """
+        SET 0
+        BNZ 4
+        SET 1
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(1),
+        )
+
+    def test_bp_instruction_taken(self):
+        # Test the BP instruction
+        source = """
+        SET 1
+        BP 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(1),
+        )
+
+    def test_bp_instruction_not_taken(self):
+        # Test the BP instruction
+        source = """
+        SET -1
+        BP 4
+        SET 1
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(1),
+        )
+
+    def test_bn_instruction_taken(self):
+        # Test the BN instruction
+        source = """
+        SET -1
+        BN 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(-1),
+        )
+
+    def test_bn_instruction_not_taken(self):
+        # Test the BN instruction
+        source = """
+        SET 1
+        BN 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0),
+        )
+
+    def test_bcs_instruction_taken(self):
+        # Test the Brabch if Carry Set (BCS) instruction
+        source = """
+        SET 0xFF
+        ADDI 6
+        BCS 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(5),
+        )
+
+    def test_bcs_instruction_not_taken(self):
+        # Test the Branch if Carry Set (BCS) instruction
+        source = """
+        SET 0xFE
+        ADDI 1
+        BCS 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0),
+        )
+
+    def test_bcc_instruction_taken(self):
+        # Test the Branch if Carry Clear (BCC) instruction
+        source = """
+        SET 0xFE
+        ADDI 1
+        BCC 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0xFF),
+        )
+
+    def test_bcc_instruction_not_taken(self):
+        # Test the Branch if Carry Clear (BCC) instruction
+        source = """
+        SET 0xFF
+        ADDI 6
+        BCC 4
+        SET 0
+        HALT
+        """
+        binary = Assembler.assemble(source)
+        self.simulator.load_binary(binary)
+        self.simulator.run_until_halt()
+        state = self.simulator.get_state()
+        self.assertEqual(
+            state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC],
+            DataBusValue(0),
+        )

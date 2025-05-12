@@ -165,7 +165,3 @@ class TestAssembler(unittest.TestCase):
 
         binary = Assembler.encode_instruction(instructions[0])
         self.assertEqual(binary, INSTRUCTION_HALT)
-
-
-if __name__ == "__main__":
-    unittest.main()

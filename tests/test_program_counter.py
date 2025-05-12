@@ -134,7 +134,3 @@ class TestProgramCounter(unittest.TestCase):
             ValueError, "No next value set for program counter"
         ):
             self.program_counter.update_state()
-
-
-if __name__ == "__main__":
-    unittest.main()

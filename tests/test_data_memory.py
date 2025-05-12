@@ -72,7 +72,3 @@ class TestDataMemory(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.data_memory.get_load_result()
         self.assertIn("Segmentation fault", str(context.exception))
-
-
-if __name__ == "__main__":
-    unittest.main()

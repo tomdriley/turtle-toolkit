@@ -144,7 +144,3 @@ class TestRegisterFile(unittest.TestCase):
         initial_status = self.register_file.get_status_register_value()
         self.register_file.update_state()
         self.assertEqual(self.register_file.get_status_register_value(), initial_status)
-
-
-if __name__ == "__main__":
-    unittest.main()

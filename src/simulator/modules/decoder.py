@@ -89,7 +89,8 @@ class DecodeUnit(BaseModule):
             register_index=RegisterIndex(reg_idx_field),
             immediate_data_value=DataBusValue(data_imm_field),
             register_file_instruction=(
-                op_field == Opcode.REG_MEMORY.value
+                branch_field == 0
+                and op_field == Opcode.REG_MEMORY.value
                 and func_field != RegMemoryFunction.LOAD.value
                 and func_field != RegMemoryFunction.STORE.value
             ),
@@ -97,7 +98,8 @@ class DecodeUnit(BaseModule):
             register_file_get=(func_field == RegMemoryFunction.GET.value),
             register_file_put=(func_field == RegMemoryFunction.PUT.value),
             memory_instruction=(
-                op_field == Opcode.REG_MEMORY.value
+                branch_field == 0
+                and op_field == Opcode.REG_MEMORY.value
                 and (
                     func_field == RegMemoryFunction.LOAD.value
                     or func_field == RegMemoryFunction.STORE.value
@@ -106,7 +108,11 @@ class DecodeUnit(BaseModule):
             memory_load=(func_field == RegMemoryFunction.LOAD.value),
             memory_store=(func_field == RegMemoryFunction.STORE.value),
             jump_instruction=(
-                op_field == Opcode.JUMP_IMM.value or op_field == Opcode.JUMP_REG.value
+                branch_field == 0
+                and (
+                    op_field == Opcode.JUMP_IMM.value
+                    or op_field == Opcode.JUMP_REG.value
+                )
             ),
             immediate_jump=(op_field == Opcode.JUMP_IMM.value),
             relative_jump=(func_field == JumpFunction.JUMP_RELATIVE.value),

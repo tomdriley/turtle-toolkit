@@ -136,7 +136,3 @@ class TestALU(unittest.TestCase):
         )  # Mask to 32 bits
         self.assertFalse(outputs.carry_flag)
         self.assertFalse(outputs.signed_overflow)
-
-
-if __name__ == "__main__":
-    unittest.main()

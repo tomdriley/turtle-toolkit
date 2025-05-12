@@ -41,7 +41,3 @@ class TestDecodeUnit(unittest.TestCase):
         decoded = self.decoder.decode(binary_data)
         self.assertTrue(decoded.branch_instruction)
         self.assertEqual(decoded.branch_condition, BranchCondition.ZERO)
-
-
-if __name__ == "__main__":
-    unittest.main()
