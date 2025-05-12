@@ -15,6 +15,7 @@ from simulator.common.instruction_data import (
     JumpFunction,
 )
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -32,7 +33,7 @@ class DecodedInstruction:
     # ALU
     alu_instruction: bool
     alu_immediate_instruction: bool
-    alu_function: ArithLogicFunction
+    alu_function: Optional[ArithLogicFunction]
     register_index: RegisterIndex
     immediate_data_value: DataBusValue
 
@@ -75,14 +76,16 @@ class DecodeUnit(BaseModule):
             branch_condition=BranchCondition(branch_cond_field),
             immediate_address_value=InstructionAddressBusValue(addr_imm_field),
             alu_instruction=(
-                branch_field == 0
-                and (
-                    op_field == Opcode.ARITH_LOGIC_IMM.value
-                    or op_field == Opcode.ARITH_LOGIC.value
+                is_alu := (
+                    branch_field == 0
+                    and (
+                        op_field == Opcode.ARITH_LOGIC_IMM.value
+                        or op_field == Opcode.ARITH_LOGIC.value
+                    )
                 )
             ),
             alu_immediate_instruction=(op_field == Opcode.ARITH_LOGIC_IMM.value),
-            alu_function=ArithLogicFunction(func_field),
+            alu_function=ArithLogicFunction(func_field) if is_alu else None,
             register_index=RegisterIndex(reg_idx_field),
             immediate_data_value=DataBusValue(data_imm_field),
             register_file_instruction=(

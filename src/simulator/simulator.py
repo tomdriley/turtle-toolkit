@@ -51,20 +51,21 @@ class SimulationResult:
 class Simulator(metaclass=SingletonMeta):
     """Singleton class for the simulator."""
 
-    _state: SimulatorState
-    _alu: ALU = ALU(ALU_NAME)
-    _decode_unit: DecodeUnit = DecodeUnit(DECODER_NAME)
-    _instruction_memory: InstructionMemory = InstructionMemory(INSTRUCTION_MEMORY_NAME)
-    _data_memory: DataMemory = DataMemory(DATA_MEMORY_NAME)
-    _register_file: RegisterFile = RegisterFile(REGISTER_FILE_NAME)
-    _program_counter: ProgramCounter = ProgramCounter(PROGRAM_COUNTER_NAME)
-
     def __init__(self):
         logger.debug("Initializing Simulator instance.")
         self.reset()
         logger.info("Simulator instance created.")
 
     def initialize_modules(self) -> None:
+        self._state: SimulatorState
+        self._alu: ALU = ALU(ALU_NAME)
+        self._decode_unit: DecodeUnit = DecodeUnit(DECODER_NAME)
+        self._instruction_memory: InstructionMemory = InstructionMemory(
+            INSTRUCTION_MEMORY_NAME
+        )
+        self._data_memory: DataMemory = DataMemory(DATA_MEMORY_NAME)
+        self._register_file: RegisterFile = RegisterFile(REGISTER_FILE_NAME)
+        self._program_counter: ProgramCounter = ProgramCounter(PROGRAM_COUNTER_NAME)
         self._state.modules[self._instruction_memory.name] = (
             self._instruction_memory.get_state_ref()
         )
@@ -322,6 +323,7 @@ class Simulator(metaclass=SingletonMeta):
         except Exception as e:
             logger.error(f"Simulation state: {self._state}")
             logger.error(f"Simulation failed: {e}")
+            raise e
         raise RuntimeError("Simulation failed")
 
     def get_state(self) -> SimulatorState:

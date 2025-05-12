@@ -3,6 +3,8 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
+from typing import Optional
+
 from simulator.modules.base_module import BaseModule
 from simulator.common.data_types import DataBusValue
 from simulator.common.logger import logger
@@ -20,12 +22,15 @@ class ALU(BaseModule):
         self,
         operand_a: DataBusValue,
         operand_b: DataBusValue,
-        function: ArithLogicFunction,
+        function: Optional[ArithLogicFunction],
     ) -> ALUOutputs:
         """Execute the ALU operation based on the inputs."""
         logger.debug(f"Executing ALU with inputs: {operand_a}, {operand_b}, {function}")
 
         outputs = ALUOutputs()
+
+        if function is None:
+            raise ValueError("ALU function cannot be None")
 
         if function == ArithLogicFunction.ADD:
             # Perform addition
