@@ -187,9 +187,10 @@ class Assembler:
 
         if instr.opcode == Opcode.ARITH_LOGIC:
             binary |= instr.function.value << 4  # Bits 4–7
-            if instr.register is None:
-                raise ValueError("Register is required for ARITH_LOGIC")
-            binary |= instr.register.value << 8  # Bits 8–11
+            if instr.function != ArithLogicFunction.INV:
+                if instr.register is None:
+                    raise ValueError("Register is required for ARITH_LOGIC")
+                binary |= instr.register.value << 8  # Bits 8–11
 
         elif instr.opcode == Opcode.ARITH_LOGIC_IMM:
             binary |= instr.function.value << 4
