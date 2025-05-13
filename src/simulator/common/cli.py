@@ -6,10 +6,12 @@ Date: 2025-05-04
 import argparse
 from typing import Optional
 from simulator.common.logger import logger, DEBUG, INFO
+from importlib.metadata import metadata
 
-PROJECT_NAME = "Simulator"
-PROJECT_VERSION = "0.1.0"
-PROJECT_DESCRIPTION = "A cycle simulator for the TTL CPU ISA."
+PROJECT_METADATA = metadata("simulator")
+PROJECT_NAME = PROJECT_METADATA["Name"]
+PROJECT_VERSION = PROJECT_METADATA["Version"]
+PROJECT_DESCRIPTION = PROJECT_METADATA["Summary"]
 
 
 def _configure_logger(args: argparse.Namespace) -> None:

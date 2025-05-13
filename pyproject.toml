@@ -1,7 +1,7 @@
 [project]
 name = "simulator"
 version = "0.1.0"
-description = ""
+description = "Assembler and Simulator for the TTL CPU ISA"
 authors = [
     {name = "Tom Riley",email = "tomdriley@outlook.com"}
 ]

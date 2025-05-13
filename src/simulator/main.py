@@ -13,26 +13,17 @@ import argparse
 import os
 import sys
 from typing import Optional
+from importlib.metadata import metadata
 
-from simulator.common.logger import logger, DEBUG, INFO
+from simulator.common.logger import logger, configure_logger
 from simulator.assembler import Assembler
 from simulator.simulator import Simulator
 
-PROJECT_NAME = "TTL CPU Toolkit"
-PROJECT_VERSION = "0.1.0"
-PROJECT_DESCRIPTION = "Assembler and Simulator for the TTL CPU ISA"
+PROJECT_METADATA = metadata("simulator")
 
-
-def configure_logger(verbose: bool = False) -> None:
-    """Configure the logger based on command line arguments."""
-    if verbose:
-        logger.setLevel(DEBUG)
-        logger.debug("Verbose mode enabled.")
-    else:
-        logger.setLevel(INFO)
-
-    logger.info(f"{PROJECT_NAME} v{PROJECT_VERSION}")
-    logger.info(PROJECT_DESCRIPTION)
+PROJECT_NAME = PROJECT_METADATA["Name"]
+PROJECT_VERSION = PROJECT_METADATA["Version"]
+PROJECT_DESCRIPTION = PROJECT_METADATA["Summary"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -188,7 +179,3 @@ def main() -> None:
         # Assemble and then simulate
         binary = assemble_file(args.input_file, args.output)
         simulate_binary(binary, args.max_cycles)
-
-
-if __name__ == "__main__":
-    main()
