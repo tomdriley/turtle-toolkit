@@ -23,20 +23,63 @@ def _configure_logger(args: argparse.Namespace) -> None:
     logger.info(f"{PROJECT_NAME} v{PROJECT_VERSION} - {PROJECT_DESCRIPTION}")
 
 
-def _parse_args() -> argparse.Namespace:
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description=PROJECT_DESCRIPTION)
-    parser.add_argument("input_string", help="The string to process.")
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose logging."
+
+    # Create subparsers for the different commands
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+
+    # Assembler command
+    assemble_parser = subparsers.add_parser(
+        "assemble", help="Assemble source code to binary"
     )
-    parser.add_argument(
-        "-o", "--output-file", type=str, help="Optional output file path."
+    assemble_parser.add_argument("input_file", type=str, help="Assembly source file")
+    assemble_parser.add_argument(
+        "-o", "--output", type=str, help="Output binary file (default: input_file.bin)"
     )
+    assemble_parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
+    )
+
+    # Simulator command
+    simulate_parser = subparsers.add_parser("simulate", help="Simulate binary code")
+    simulate_parser.add_argument("input_file", type=str, help="Binary file to simulate")
+    simulate_parser.add_argument(
+        "-m",
+        "--max-cycles",
+        type=int,
+        default=10000,
+        help="Maximum number of cycles to simulate (default: 10000)",
+    )
+    simulate_parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
+    )
+
+    # Combined command (assemble and simulate)
+    combined_parser = subparsers.add_parser(
+        "run", help="Assemble and simulate in one step"
+    )
+    combined_parser.add_argument("input_file", type=str, help="Assembly source file")
+    combined_parser.add_argument(
+        "-o", "--output", type=str, help="Intermediate binary file (optional)"
+    )
+    combined_parser.add_argument(
+        "-m",
+        "--max-cycles",
+        type=int,
+        default=10000,
+        help="Maximum number of cycles to simulate (default: 10000)",
+    )
+    combined_parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
+    )
+
     return parser.parse_args()
 
 
 def setup_cli() -> argparse.Namespace:
-    args = _parse_args()
+    args = parse_args()
     _configure_logger(args)
     return args
 
