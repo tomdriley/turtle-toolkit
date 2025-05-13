@@ -1,7 +1,10 @@
 import pytest
-from simulator.modules.instruction_memory import InstructionMemory, INSTRUCTION_WIDTH
-from simulator.common.data_types import InstructionAddressBusValue
-from simulator.assembler import Assembler
+from turtle_toolkit.modules.instruction_memory import (
+    InstructionMemory,
+    INSTRUCTION_WIDTH,
+)
+from turtle_toolkit.common.data_types import InstructionAddressBusValue
+from turtle_toolkit.assembler import Assembler
 
 
 @pytest.fixture

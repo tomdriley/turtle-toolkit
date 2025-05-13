@@ -7,19 +7,19 @@ from typing import Generator, Optional, Dict
 from dataclasses import dataclass, field
 from collections import deque
 
-from simulator.common.singleton_meta import SingletonMeta
-from simulator.common.logger import logger
-from simulator.common.data_types import DataBusValue
-from simulator.modules.base_module import BaseModuleState
-from simulator.modules.alu import ALU
-from simulator.modules.decoder import DecodeUnit, DecodedInstruction
-from simulator.modules.instruction_memory import (
+from turtle_toolkit.common.singleton_meta import SingletonMeta
+from turtle_toolkit.common.logger import logger
+from turtle_toolkit.common.data_types import DataBusValue
+from turtle_toolkit.modules.base_module import BaseModuleState
+from turtle_toolkit.modules.alu import ALU
+from turtle_toolkit.modules.decoder import DecodeUnit, DecodedInstruction
+from turtle_toolkit.modules.instruction_memory import (
     InstructionMemory,
 )
-from simulator.modules.data_memory import DataMemory
-from simulator.modules.register_file import RegisterFile
-from simulator.modules.program_counter import ProgramCounter
-from simulator.assembler import Assembler
+from turtle_toolkit.modules.data_memory import DataMemory
+from turtle_toolkit.modules.register_file import RegisterFile
+from turtle_toolkit.modules.program_counter import ProgramCounter
+from turtle_toolkit.assembler import Assembler
 
 ALU_NAME = "ALU"
 DECODER_NAME = "Decoder"

@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""
+Turtle Toolkit - Command Line Interface
+"""
+
+from turtle_toolkit.main import main
+
+if __name__ == "__main__":
+    main()

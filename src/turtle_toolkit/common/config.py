@@ -4,7 +4,7 @@ Date: 2025-05-04
 """
 
 import yaml
-from simulator.common.singleton_meta import SingletonMeta
+from turtle_toolkit.common.singleton_meta import SingletonMeta
 from typing import TypeVar, Type
 from os import path
 

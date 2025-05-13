@@ -1,6 +1,6 @@
 import pytest
-from simulator.modules.alu import ALU, ArithLogicFunction
-from simulator.common.data_types import DataBusValue
+from turtle_toolkit.modules.alu import ALU, ArithLogicFunction
+from turtle_toolkit.common.data_types import DataBusValue
 
 
 @pytest.fixture

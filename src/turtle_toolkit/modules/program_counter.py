@@ -4,11 +4,11 @@ Date: 2025-05-04
 """
 
 from typing import Optional
-from simulator.modules.base_module import BaseModule, BaseModuleState
-from simulator.common.data_types import InstructionAddressBusValue
-from simulator.modules.register_file import StatusRegisterValue
-from simulator.modules.decoder import BranchCondition
-from simulator.common.config import INSTRUCTION_WIDTH
+from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
+from turtle_toolkit.common.data_types import InstructionAddressBusValue
+from turtle_toolkit.modules.register_file import StatusRegisterValue
+from turtle_toolkit.modules.decoder import BranchCondition
+from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 
 
 class ProgramCounterState(BaseModuleState):

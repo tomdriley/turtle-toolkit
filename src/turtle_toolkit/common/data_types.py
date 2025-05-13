@@ -5,7 +5,7 @@ Date: 2025-05-04
 
 from dataclasses import dataclass
 from typing import ClassVar, Self
-from simulator.common.config import (
+from turtle_toolkit.common.config import (
     DATA_WIDTH,
     INSTRUCTION_ADDRESS_WIDTH,
     DATA_ADDRESS_WIDTH,

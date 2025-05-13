@@ -1,10 +1,10 @@
 import pytest
-from simulator.assembler import Assembler
-from simulator.common.instruction_data import RegisterIndex
-from simulator.modules.alu import ArithLogicFunction
-from simulator.modules.decoder import BranchCondition
-from simulator.assembler import Opcode, RegMemoryFunction
-from simulator.common.data_types import DataBusValue, InstructionAddressBusValue
+from turtle_toolkit.assembler import Assembler
+from turtle_toolkit.common.instruction_data import RegisterIndex
+from turtle_toolkit.modules.alu import ArithLogicFunction
+from turtle_toolkit.modules.decoder import BranchCondition
+from turtle_toolkit.assembler import Opcode, RegMemoryFunction
+from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
 from .binary_macros import (
     INSTRUCTION_NOP,
     INSTRUCTION_HALT,

@@ -1,11 +1,11 @@
 import pytest
 
-from simulator.modules.register_file import (
+from turtle_toolkit.modules.register_file import (
     RegisterFile,
     RegisterIndex,
     StatusRegisterValue,
 )
-from simulator.common.data_types import (
+from turtle_toolkit.common.data_types import (
     DataBusValue,
     DataAddressBusValue,
     InstructionAddressBusValue,

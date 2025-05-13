@@ -5,10 +5,10 @@ Date: 2025-05-04
 
 import argparse
 from typing import Optional
-from simulator.common.logger import configure_logger, logger
+from turtle_toolkit.common.logger import configure_logger, logger
 from importlib.metadata import metadata
 
-PROJECT_METADATA = metadata("simulator")
+PROJECT_METADATA = metadata("turtle_toolkit")
 PROJECT_NAME = PROJECT_METADATA["Name"]
 PROJECT_VERSION = PROJECT_METADATA["Version"]
 PROJECT_DESCRIPTION = PROJECT_METADATA["Summary"]

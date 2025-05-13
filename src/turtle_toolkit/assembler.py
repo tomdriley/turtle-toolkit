@@ -12,10 +12,10 @@ Date: 2025-05-07
 import re
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional
-from simulator.common.config import INSTRUCTION_WIDTH
-from simulator.common.data_types import DataBusValue, InstructionAddressBusValue
-from simulator.common.instruction_data import RegisterIndex
-from simulator.common.instruction_data import (
+from turtle_toolkit.common.config import INSTRUCTION_WIDTH
+from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
+from turtle_toolkit.common.instruction_data import RegisterIndex
+from turtle_toolkit.common.instruction_data import (
     ArithLogicFunction,
     BranchCondition,
     JumpFunction,

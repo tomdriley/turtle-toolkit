@@ -5,7 +5,7 @@ Date: 2025-05-04
 
 from dataclasses import dataclass
 from abc import ABC
-from simulator.common.logger import logger
+from turtle_toolkit.common.logger import logger
 
 
 @dataclass

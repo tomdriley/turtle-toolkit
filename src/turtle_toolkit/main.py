@@ -14,12 +14,12 @@ import sys
 from typing import Optional
 from importlib.metadata import metadata
 
-from simulator.common.logger import logger
-from simulator.common.cli import setup_cli
-from simulator.assembler import Assembler
-from simulator.simulator import Simulator
+from turtle_toolkit.common.logger import logger
+from turtle_toolkit.common.cli import setup_cli
+from turtle_toolkit.assembler import Assembler
+from turtle_toolkit.simulator import Simulator
 
-PROJECT_METADATA = metadata("simulator")
+PROJECT_METADATA = metadata("turtle_toolkit")
 
 PROJECT_NAME = PROJECT_METADATA["Name"]
 PROJECT_VERSION = PROJECT_METADATA["Version"]

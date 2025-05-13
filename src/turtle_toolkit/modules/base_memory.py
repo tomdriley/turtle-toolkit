@@ -5,7 +5,7 @@ Date: 2025-05-06
 
 from typing import Dict, Optional, TypeVar, Generic
 from dataclasses import dataclass, field
-from simulator.modules.base_module import BaseModule, BaseModuleState
+from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
 
 AddressType = TypeVar("AddressType")
 DataType = TypeVar("DataType")

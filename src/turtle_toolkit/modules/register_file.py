@@ -5,18 +5,18 @@ Date: 2025-05-04
 
 from dataclasses import dataclass, field
 from typing import Optional
-from simulator.modules.base_module import BaseModule, BaseModuleState
-from simulator.common.data_types import (
+from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
+from turtle_toolkit.common.data_types import (
     DataBusValue,
     DataAddressBusValue,
     InstructionAddressBusValue,
 )
-from simulator.common.config import (
+from turtle_toolkit.common.config import (
     DATA_WIDTH,
     INSTRUCTION_ADDRESS_WIDTH,
     DATA_ADDRESS_WIDTH,
 )
-from simulator.common.instruction_data import RegisterIndex
+from turtle_toolkit.common.instruction_data import RegisterIndex
 
 
 @dataclass

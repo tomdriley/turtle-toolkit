@@ -5,10 +5,10 @@ Date: 2025-05-04
 
 from typing import Optional
 
-from simulator.modules.base_module import BaseModule
-from simulator.common.data_types import DataBusValue
-from simulator.common.logger import logger
-from simulator.common.instruction_data import ArithLogicFunction
+from turtle_toolkit.modules.base_module import BaseModule
+from turtle_toolkit.common.data_types import DataBusValue
+from turtle_toolkit.common.logger import logger
+from turtle_toolkit.common.instruction_data import ArithLogicFunction
 
 
 class ALUOutputs:

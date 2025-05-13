@@ -12,7 +12,7 @@ DEBUG = logging.DEBUG
 INFO = logging.INFO
 WARNING = logging.WARNING
 
-PROJECT_METADATA = metadata("simulator")
+PROJECT_METADATA = metadata("turtle_toolkit")
 
 PROJECT_NAME = PROJECT_METADATA["Name"]
 PROJECT_VERSION = PROJECT_METADATA["Version"]

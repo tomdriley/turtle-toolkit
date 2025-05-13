@@ -1,5 +1,5 @@
 import pytest
-from simulator.simulator import (
+from turtle_toolkit.simulator import (
     Simulator,
     DATA_MEMORY_NAME,
     INSTRUCTION_MEMORY_NAME,
@@ -7,11 +7,11 @@ from simulator.simulator import (
     REGISTER_FILE_NAME,
     SimulationTimeout,
 )
-from simulator.common.config import INSTRUCTION_WIDTH
-from simulator.modules.instruction_memory import INSTRUCTION_FETCH_LATENCY_CYCLES
-from simulator.assembler import Assembler
-from simulator.common.data_types import DataBusValue, DataAddressBusValue
-from simulator.common.instruction_data import RegisterIndex
+from turtle_toolkit.common.config import INSTRUCTION_WIDTH
+from turtle_toolkit.modules.instruction_memory import INSTRUCTION_FETCH_LATENCY_CYCLES
+from turtle_toolkit.assembler import Assembler
+from turtle_toolkit.common.data_types import DataBusValue, DataAddressBusValue
+from turtle_toolkit.common.instruction_data import RegisterIndex
 
 
 @pytest.fixture

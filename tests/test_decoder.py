@@ -1,7 +1,7 @@
 import pytest
-from simulator.modules.decoder import DecodeUnit
-from simulator.modules.instruction_memory import InstructionBinary
-from simulator.common.instruction_data import (
+from turtle_toolkit.modules.decoder import DecodeUnit
+from turtle_toolkit.modules.instruction_memory import InstructionBinary
+from turtle_toolkit.common.instruction_data import (
     ArithLogicFunction,
     BranchCondition,
 )
@@ -9,7 +9,7 @@ from .binary_macros import (
     INSTRUCTION_NOP,
     INSTRUCTION_HALT,
 )
-from simulator.assembler import Assembler
+from turtle_toolkit.assembler import Assembler
 
 
 @pytest.fixture

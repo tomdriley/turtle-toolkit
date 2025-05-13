@@ -1,8 +1,8 @@
 import pytest
-from simulator.modules.program_counter import ProgramCounter
-from simulator.common.data_types import InstructionAddressBusValue
-from simulator.modules.register_file import StatusRegisterValue
-from simulator.modules.decoder import BranchCondition
+from turtle_toolkit.modules.program_counter import ProgramCounter
+from turtle_toolkit.common.data_types import InstructionAddressBusValue
+from turtle_toolkit.modules.register_file import StatusRegisterValue
+from turtle_toolkit.modules.decoder import BranchCondition
 
 
 @pytest.fixture
