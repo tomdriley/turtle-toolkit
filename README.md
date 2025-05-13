@@ -6,8 +6,16 @@ Turtle Toolkit is a comprehensive toolchain for simulating and assembling progra
 
 ## Installation
 
+For development: 
+
 ```bash
 poetry install
+```
+
+For using the tool:
+
+```bash
+pipx install . --python python3.13
 ```
 
 ---
