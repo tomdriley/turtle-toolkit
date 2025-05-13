@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""
+TTL CPU Toolkit - Command Line Interface
+"""
+
+from simulator.main import main
+
+if __name__ == "__main__":
+    main()
