@@ -3,19 +3,20 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-from turtle_toolkit.modules.base_module import BaseModule
-from turtle_toolkit.modules.instruction_memory import InstructionBinary
+from dataclasses import dataclass
+from typing import Optional
+
 from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
-from turtle_toolkit.common.instruction_data import RegisterIndex
 from turtle_toolkit.common.instruction_data import (
     ArithLogicFunction,
     BranchCondition,
-    Opcode,
-    RegMemoryFunction,
     JumpFunction,
+    Opcode,
+    RegisterIndex,
+    RegMemoryFunction,
 )
-from dataclasses import dataclass
-from typing import Optional
+from turtle_toolkit.modules.base_module import BaseModule
+from turtle_toolkit.modules.instruction_memory import InstructionBinary
 
 
 @dataclass

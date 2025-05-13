@@ -3,8 +3,9 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-from dataclasses import dataclass
 from abc import ABC
+from dataclasses import dataclass
+
 from turtle_toolkit.common.logger import logger
 
 

@@ -5,10 +5,11 @@ Date: 2025-05-04
 
 from dataclasses import dataclass
 from typing import ClassVar, Self
+
 from turtle_toolkit.common.config import (
+    DATA_ADDRESS_WIDTH,
     DATA_WIDTH,
     INSTRUCTION_ADDRESS_WIDTH,
-    DATA_ADDRESS_WIDTH,
 )
 
 

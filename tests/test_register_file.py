@@ -1,14 +1,14 @@
 import pytest
 
+from turtle_toolkit.common.data_types import (
+    DataAddressBusValue,
+    DataBusValue,
+    InstructionAddressBusValue,
+)
 from turtle_toolkit.modules.register_file import (
     RegisterFile,
     RegisterIndex,
     StatusRegisterValue,
-)
-from turtle_toolkit.common.data_types import (
-    DataBusValue,
-    DataAddressBusValue,
-    InstructionAddressBusValue,
 )
 
 

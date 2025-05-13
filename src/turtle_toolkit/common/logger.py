@@ -7,7 +7,6 @@ import logging
 import sys
 from importlib.metadata import metadata
 
-
 DEBUG = logging.DEBUG
 INFO = logging.INFO
 WARNING = logging.WARNING

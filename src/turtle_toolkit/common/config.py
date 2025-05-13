@@ -3,10 +3,12 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-import yaml
-from turtle_toolkit.common.singleton_meta import SingletonMeta
-from typing import TypeVar, Type
 from os import path
+from typing import Type, TypeVar
+
+import yaml
+
+from turtle_toolkit.common.singleton_meta import SingletonMeta
 
 LOCAL_DIR = path.dirname(path.abspath(__file__))
 CONFIG_FILE = path.join(LOCAL_DIR, "config.yml")

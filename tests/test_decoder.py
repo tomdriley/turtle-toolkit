@@ -1,15 +1,11 @@
 import pytest
+
+from turtle_toolkit.assembler import Assembler
+from turtle_toolkit.common.instruction_data import ArithLogicFunction, BranchCondition
 from turtle_toolkit.modules.decoder import DecodeUnit
 from turtle_toolkit.modules.instruction_memory import InstructionBinary
-from turtle_toolkit.common.instruction_data import (
-    ArithLogicFunction,
-    BranchCondition,
-)
-from .binary_macros import (
-    INSTRUCTION_NOP,
-    INSTRUCTION_HALT,
-)
-from turtle_toolkit.assembler import Assembler
+
+from .binary_macros import INSTRUCTION_HALT, INSTRUCTION_NOP
 
 
 @pytest.fixture

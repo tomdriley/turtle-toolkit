@@ -1,6 +1,7 @@
 import pytest
-from turtle_toolkit.modules.data_memory import DataMemory
+
 from turtle_toolkit.common.data_types import DataAddressBusValue, DataBusValue
+from turtle_toolkit.modules.data_memory import DataMemory
 
 
 @pytest.fixture

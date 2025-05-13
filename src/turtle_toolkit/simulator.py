@@ -3,23 +3,21 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-from typing import Generator, Optional, Dict
-from dataclasses import dataclass, field
 from collections import deque
+from dataclasses import dataclass, field
+from typing import Dict, Generator, Optional
 
-from turtle_toolkit.common.singleton_meta import SingletonMeta
-from turtle_toolkit.common.logger import logger
-from turtle_toolkit.common.data_types import DataBusValue
-from turtle_toolkit.modules.base_module import BaseModuleState
-from turtle_toolkit.modules.alu import ALU
-from turtle_toolkit.modules.decoder import DecodeUnit, DecodedInstruction
-from turtle_toolkit.modules.instruction_memory import (
-    InstructionMemory,
-)
-from turtle_toolkit.modules.data_memory import DataMemory
-from turtle_toolkit.modules.register_file import RegisterFile
-from turtle_toolkit.modules.program_counter import ProgramCounter
 from turtle_toolkit.assembler import Assembler
+from turtle_toolkit.common.data_types import DataBusValue
+from turtle_toolkit.common.logger import logger
+from turtle_toolkit.common.singleton_meta import SingletonMeta
+from turtle_toolkit.modules.alu import ALU
+from turtle_toolkit.modules.base_module import BaseModuleState
+from turtle_toolkit.modules.data_memory import DataMemory
+from turtle_toolkit.modules.decoder import DecodedInstruction, DecodeUnit
+from turtle_toolkit.modules.instruction_memory import InstructionMemory
+from turtle_toolkit.modules.program_counter import ProgramCounter
+from turtle_toolkit.modules.register_file import RegisterFile
 
 ALU_NAME = "ALU"
 DECODER_NAME = "Decoder"

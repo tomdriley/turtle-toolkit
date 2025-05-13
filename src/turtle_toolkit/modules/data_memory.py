@@ -3,8 +3,8 @@ Author: Tom Riley
 Date: 2025-05-04
 """
 
-from turtle_toolkit.modules.base_memory import BaseMemory
 from turtle_toolkit.common.data_types import DataAddressBusValue, DataBusValue
+from turtle_toolkit.modules.base_memory import BaseMemory
 
 MEMORY_LATENCY_CYCLES = 10
 

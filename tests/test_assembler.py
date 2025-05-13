@@ -1,14 +1,12 @@
 import pytest
-from turtle_toolkit.assembler import Assembler
+
+from turtle_toolkit.assembler import Assembler, Opcode, RegMemoryFunction
+from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
 from turtle_toolkit.common.instruction_data import RegisterIndex
 from turtle_toolkit.modules.alu import ArithLogicFunction
 from turtle_toolkit.modules.decoder import BranchCondition
-from turtle_toolkit.assembler import Opcode, RegMemoryFunction
-from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
-from .binary_macros import (
-    INSTRUCTION_NOP,
-    INSTRUCTION_HALT,
-)
+
+from .binary_macros import INSTRUCTION_HALT, INSTRUCTION_NOP
 
 
 def test_parse_assembly():

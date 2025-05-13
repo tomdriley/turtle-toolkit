@@ -1,8 +1,9 @@
 import pytest
-from turtle_toolkit.modules.program_counter import ProgramCounter
+
 from turtle_toolkit.common.data_types import InstructionAddressBusValue
-from turtle_toolkit.modules.register_file import StatusRegisterValue
 from turtle_toolkit.modules.decoder import BranchCondition
+from turtle_toolkit.modules.program_counter import ProgramCounter
+from turtle_toolkit.modules.register_file import StatusRegisterValue
 
 
 @pytest.fixture

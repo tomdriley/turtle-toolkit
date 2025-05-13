@@ -4,9 +4,9 @@ Date: 2025-05-04
 """
 
 import argparse
-from typing import Optional
-from turtle_toolkit.common.logger import configure_logger, logger
 from importlib.metadata import metadata
+
+from turtle_toolkit.common.logger import configure_logger
 
 PROJECT_METADATA = metadata("turtle_toolkit")
 PROJECT_NAME = PROJECT_METADATA["Name"]

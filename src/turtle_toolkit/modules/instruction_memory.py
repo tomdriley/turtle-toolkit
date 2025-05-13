@@ -4,8 +4,9 @@ Date: 2025-05-04
 """
 
 from dataclasses import dataclass
-from turtle_toolkit.common.data_types import InstructionAddressBusValue
+
 from turtle_toolkit.common.config import INSTRUCTION_WIDTH
+from turtle_toolkit.common.data_types import InstructionAddressBusValue
 from turtle_toolkit.modules.base_memory import BaseMemory
 
 INSTRUCTION_FETCH_LATENCY_CYCLES = 10

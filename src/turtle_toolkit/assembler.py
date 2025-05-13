@@ -11,28 +11,29 @@ Date: 2025-05-07
 
 import re
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, List, Optional, Tuple
+
 from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
-from turtle_toolkit.common.instruction_data import RegisterIndex
 from turtle_toolkit.common.instruction_data import (
+    ADDR_IMM_OPERAND,
+    ARITH_LOGIC_IMM_OPCODE_TEXTS,
+    ARITH_LOGIC_OPCODE_TEXTS,
+    BRANCH_OPCODE_CONDITION_MAP,
+    DATA_IMM_OPERAND,
+    HALT_OPCODE_TEXTS,
+    JUMP_IMM_OPCODE_TEXTS,
+    JUMP_OPCODE_FUNC_MAP,
+    JUMP_REG_OPCODE_TEXTS,
+    NO_OPERAND,
+    NOP_OPCODE_TEXTS,
+    REG_OPERAND,
     ArithLogicFunction,
     BranchCondition,
     JumpFunction,
     Opcode,
+    RegisterIndex,
     RegMemoryFunction,
-    JUMP_OPCODE_FUNC_MAP,
-    JUMP_REG_OPCODE_TEXTS,
-    JUMP_IMM_OPCODE_TEXTS,
-    ARITH_LOGIC_OPCODE_TEXTS,
-    ARITH_LOGIC_IMM_OPCODE_TEXTS,
-    NO_OPERAND,
-    DATA_IMM_OPERAND,
-    ADDR_IMM_OPERAND,
-    REG_OPERAND,
-    BRANCH_OPCODE_CONDITION_MAP,
-    NOP_OPCODE_TEXTS,
-    HALT_OPCODE_TEXTS,
 )
 
 # Regex: optional label + optional instruction + optional operand

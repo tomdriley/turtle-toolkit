@@ -11,12 +11,12 @@ This module provides a comprehensive CLI interface for:
 
 import os
 import sys
-from typing import Optional
 from importlib.metadata import metadata
+from typing import Optional
 
-from turtle_toolkit.common.logger import logger
-from turtle_toolkit.common.cli import setup_cli
 from turtle_toolkit.assembler import Assembler
+from turtle_toolkit.common.cli import setup_cli
+from turtle_toolkit.common.logger import logger
 from turtle_toolkit.simulator import Simulator
 
 PROJECT_METADATA = metadata("turtle_toolkit")

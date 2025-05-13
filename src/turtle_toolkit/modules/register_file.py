@@ -5,18 +5,19 @@ Date: 2025-05-04
 
 from dataclasses import dataclass, field
 from typing import Optional
-from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
-from turtle_toolkit.common.data_types import (
-    DataBusValue,
-    DataAddressBusValue,
-    InstructionAddressBusValue,
-)
+
 from turtle_toolkit.common.config import (
+    DATA_ADDRESS_WIDTH,
     DATA_WIDTH,
     INSTRUCTION_ADDRESS_WIDTH,
-    DATA_ADDRESS_WIDTH,
+)
+from turtle_toolkit.common.data_types import (
+    DataAddressBusValue,
+    DataBusValue,
+    InstructionAddressBusValue,
 )
 from turtle_toolkit.common.instruction_data import RegisterIndex
+from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
 
 
 @dataclass
