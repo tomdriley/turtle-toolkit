@@ -5,11 +5,12 @@ from simulator.simulator import (
     INSTRUCTION_MEMORY_NAME,
     PROGRAM_COUNTER_NAME,
     REGISTER_FILE_NAME,
+    SimulationTimeout,
 )
 from simulator.common.config import INSTRUCTION_WIDTH
 from simulator.modules.instruction_memory import INSTRUCTION_FETCH_LATENCY_CYCLES
 from simulator.assembler import Assembler
-from simulator.common.data_types import DataBusValue
+from simulator.common.data_types import DataBusValue, DataAddressBusValue
 from simulator.common.instruction_data import RegisterIndex
 
 
@@ -539,3 +540,140 @@ def test_bcc_instruction_not_taken(simulator):
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
     ] == DataBusValue(0)
+
+
+def test_watchdog_timer(simulator):
+    # Test that the watchdog timer works by creating an infinite loop
+    source = """
+    ; An infinite loop that never halts
+    SET 0
+    JMPI 0  ; Jump back to the same instruction, creating an infinite loop
+    HALT     ; This should never be reached
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+
+    # Run with a small max_cycles value (watchdog timer)
+    max_cycles = 10
+
+    # The simulation should raise a SimulationTimeout exception
+    with pytest.raises(SimulationTimeout) as excinfo:
+        simulator.run_until_halt(max_cycles=max_cycles)
+
+    # Verify that the exception contains the correct cycle count
+    assert excinfo.value.cycle_count == max_cycles
+
+
+def test_store_instruction(simulator):
+    # Test the STORE instruction
+    source = """
+    SET 1
+    STORE
+    HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt(max_cycles=100)
+    state = simulator.get_state()
+    assert state.modules[DATA_MEMORY_NAME].memory[
+        DataAddressBusValue(0x000)
+    ] == DataBusValue(1)
+
+
+def test_load_instruction(simulator):
+    # Test the LOAD instruction
+    source = """
+    SET 1
+    STORE
+    SET 0
+    LOAD
+    HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt(max_cycles=100)
+    state = simulator.get_state()
+    assert state.modules[REGISTER_FILE_NAME].registers[
+        RegisterIndex.ACC
+    ] == DataBusValue(1)
+
+
+def test_store_different_address(simulator):
+    # Test the STORE instruction with a different address
+    source = """
+    SET 1
+    PUT DOFF ; Addr <= 0x001
+    SET 0xA
+    STORE ; Store 0x0A @ Addr 0x001
+    SET 0
+    PUT DOFF ; Addr <= 0x000
+    STORE ; Store 0x00 @ Addr 0x000
+    SET 1
+    PUT DOFF ; Addr <= 0x001
+    LOAD ; Load from Addr 0x001
+    HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt(max_cycles=1000)
+    state = simulator.get_state()
+    assert state.modules[REGISTER_FILE_NAME].registers[
+        RegisterIndex.ACC
+    ] == DataBusValue(0x0A)
+
+
+def test_store_load_different_address(simulator):
+    # Test the STORE and LOAD instructions with different addresses
+    source = """
+    SET 1
+    PUT DOFF ; Addr <= 0x001
+    STORE ; Store 0x01 @ Addr 0x001
+    SET 0
+    PUT DOFF ; Addr <= 0x000
+    STORE ; Store 0x00 @ Addr 0x000
+    SET 1
+    PUT DOFF ; Addr <= 0x001
+    SET 0x0A
+    LOAD ; Load from Addr 0x001
+    HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt(max_cycles=1000)
+    state = simulator.get_state()
+    assert state.modules[REGISTER_FILE_NAME].registers[
+        RegisterIndex.ACC
+    ] == DataBusValue(1)
+
+
+def test_all_registers(simulator):
+    # Test the initial state of all registers
+    source = """
+    SET 1
+    PUT R0
+    SET 2
+    PUT R1
+    SET 3
+    PUT R2
+    SET 4
+    PUT R3
+    SET 5
+    PUT R4
+    SET 6
+    PUT R5
+    SET 7
+    PUT R6
+    SET 8
+    PUT R7
+    HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt()
+
+    state = simulator.get_state()
+
+    for i in range(8):
+        assert state.modules[REGISTER_FILE_NAME].registers[
+            RegisterIndex(i)
+        ] == DataBusValue(i + 1)

@@ -91,5 +91,8 @@ class BaseMemory(BaseModule, Generic[AddressType, DataType]):
 
     def update_state(self) -> None:
         """Update the memory state for the current cycle."""
-        if self.state.remaining_cycles is not None:
+        if self.state.remaining_cycles is not None and self.state.remaining_cycles > 0:
             self.state.remaining_cycles -= 1
+            assert (
+                self.state.remaining_cycles is None or self.state.remaining_cycles >= 0
+            )

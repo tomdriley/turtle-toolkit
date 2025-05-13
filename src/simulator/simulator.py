@@ -29,6 +29,14 @@ REGISTER_FILE_NAME = "RegisterFile"
 PROGRAM_COUNTER_NAME = "ProgramCounter"
 
 
+class SimulationTimeout(Exception):
+    """Exception raised when a simulation exceeds the watchdog timer limit."""
+
+    def __init__(self, cycle_count: int):
+        self.cycle_count = cycle_count
+        super().__init__(f"Simulation timed out after {cycle_count} cycles")
+
+
 @dataclass
 class SimulatorState:
     """Class to hold the state of the simulator."""
@@ -253,8 +261,12 @@ class Simulator(metaclass=SingletonMeta):
         )
         if not self._data_memory.store_complete():
             self._state.stalled = True
+            self._program_counter.set_stall(True)
             logger.debug("Memory store not complete, skipping this cycle.")
             return False
+
+        self._program_counter.set_stall(False)
+        self._state.stalled = False
 
         logger.debug("Memory store complete.")
         return True
@@ -313,13 +325,40 @@ class Simulator(metaclass=SingletonMeta):
         return SimulationResult(self._state.cycle_count, self._state)
 
     def run_until_halt(self, max_cycles: Optional[int] = None) -> SimulationResult:
+        """
+        Run the simulation until a halt instruction is encountered or max_cycles is reached.
+
+        Args:
+            max_cycles (Optional[int]): Maximum number of cycles to run. If None, runs until halt.
+                                        Acts as a watchdog timer to prevent infinite loops.
+
+        Returns:
+            SimulationResult: The result of the simulation.
+
+        Raises:
+            SimulationTimeout: If the simulation reaches max_cycles without halting.
+        """
         gen = self.run(max_cycles)
         try:
             deque(gen, maxlen=0)  # Consume the generator to run the simulation
             next(gen)
         except StopIteration as e:
             logger.debug("Simulation completed.")
-            return e.value
+            result = getattr(e, "value", None)
+
+            # If we reached max_cycles and simulation didn't halt naturally, raise timeout
+            if (
+                max_cycles is not None
+                and self._state.cycle_count >= max_cycles
+                and not self._state.halted
+            ):
+                raise SimulationTimeout(self._state.cycle_count)
+
+            # If we don't have a result from the StopIteration, create one
+            if result is None:
+                result = SimulationResult(self._state.cycle_count, self._state)
+
+            return result
         except Exception as e:
             logger.error(f"Simulation state: {self._state}")
             logger.error(f"Simulation failed: {e}")
