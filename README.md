@@ -1,4 +1,4 @@
-# Turtle Toolkit
+# 🐢 Turtle Toolkit 🔨
 
 Turtle Toolkit is a comprehensive toolchain for simulating and assembling programs for a 8-bit TTL-based CPU. It provides a command-line interface (CLI) for assembling assembly code into binary, simulating the binary on a CPU simulator, and performing both tasks in one step.
 
