@@ -9,13 +9,13 @@ This module provides a comprehensive CLI interface for:
 3. Doing both in one step (assemble then simulate)
 """
 
-import argparse
 import os
 import sys
 from typing import Optional
 from importlib.metadata import metadata
 
-from simulator.common.logger import logger, configure_logger
+from simulator.common.logger import logger
+from simulator.common.cli import setup_cli
 from simulator.assembler import Assembler
 from simulator.simulator import Simulator
 
@@ -24,61 +24,6 @@ PROJECT_METADATA = metadata("simulator")
 PROJECT_NAME = PROJECT_METADATA["Name"]
 PROJECT_VERSION = PROJECT_METADATA["Version"]
 PROJECT_DESCRIPTION = PROJECT_METADATA["Summary"]
-
-
-def parse_args() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description=PROJECT_DESCRIPTION)
-
-    # Create subparsers for the different commands
-    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
-
-    # Assembler command
-    assemble_parser = subparsers.add_parser(
-        "assemble", help="Assemble source code to binary"
-    )
-    assemble_parser.add_argument("input_file", type=str, help="Assembly source file")
-    assemble_parser.add_argument(
-        "-o", "--output", type=str, help="Output binary file (default: input_file.bin)"
-    )
-    assemble_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose output"
-    )
-
-    # Simulator command
-    simulate_parser = subparsers.add_parser("simulate", help="Simulate binary code")
-    simulate_parser.add_argument("input_file", type=str, help="Binary file to simulate")
-    simulate_parser.add_argument(
-        "-m",
-        "--max-cycles",
-        type=int,
-        default=10000,
-        help="Maximum number of cycles to simulate (default: 10000)",
-    )
-    simulate_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose output"
-    )
-
-    # Combined command (assemble and simulate)
-    combined_parser = subparsers.add_parser(
-        "run", help="Assemble and simulate in one step"
-    )
-    combined_parser.add_argument("input_file", type=str, help="Assembly source file")
-    combined_parser.add_argument(
-        "-o", "--output", type=str, help="Intermediate binary file (optional)"
-    )
-    combined_parser.add_argument(
-        "-m",
-        "--max-cycles",
-        type=int,
-        default=10000,
-        help="Maximum number of cycles to simulate (default: 10000)",
-    )
-    combined_parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose output"
-    )
-
-    return parser.parse_args()
 
 
 def read_text_file(file_path: str) -> str:
@@ -160,13 +105,11 @@ def simulate_binary(binary: bytes, max_cycles: int = 10000) -> None:
 
 def main() -> None:
     """Main entry point for the application."""
-    args = parse_args()
+    args = setup_cli()
 
     if not args.command:
         logger.error("No command specified. Use --help for usage information.")
         sys.exit(1)
-
-    configure_logger(args.verbose)
 
     if args.command == "assemble":
         assemble_file(args.input_file, args.output)

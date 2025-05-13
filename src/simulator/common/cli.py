@@ -5,24 +5,13 @@ Date: 2025-05-04
 
 import argparse
 from typing import Optional
-from simulator.common.logger import logger, DEBUG, INFO
+from simulator.common.logger import configure_logger, logger
 from importlib.metadata import metadata
 
 PROJECT_METADATA = metadata("simulator")
 PROJECT_NAME = PROJECT_METADATA["Name"]
 PROJECT_VERSION = PROJECT_METADATA["Version"]
 PROJECT_DESCRIPTION = PROJECT_METADATA["Summary"]
-
-
-def _configure_logger(args: argparse.Namespace) -> None:
-    """Configure the logger based on command line arguments."""
-    if args.verbose:
-        logger.setLevel(DEBUG)
-        logger.debug("Verbose mode enabled.")
-    else:
-        logger.setLevel(INFO)
-
-    logger.info(f"{PROJECT_NAME} v{PROJECT_VERSION} - {PROJECT_DESCRIPTION}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -82,7 +71,7 @@ def parse_args() -> argparse.Namespace:
 
 def setup_cli() -> argparse.Namespace:
     args = parse_args()
-    _configure_logger(args)
+    configure_logger(args.verbose)
     return args
 
 
