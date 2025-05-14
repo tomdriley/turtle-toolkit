@@ -5,19 +5,29 @@ Date: 2025-05-04
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Dict, Generator, Optional
+from typing import Dict, Generator, Optional, Tuple, Union
 
 from turtle_toolkit.assembler import Assembler
-from turtle_toolkit.common.data_types import DataBusValue
+from turtle_toolkit.common.config import INSTRUCTION_WIDTH
+from turtle_toolkit.common.data_types import (
+    DataAddressBusValue,
+    DataBusValue,
+    InstructionAddressBusValue,
+)
+from turtle_toolkit.common.instruction_data import RegisterIndex
 from turtle_toolkit.common.logger import logger
 from turtle_toolkit.common.singleton_meta import SingletonMeta
 from turtle_toolkit.modules.alu import ALU
+from turtle_toolkit.modules.base_memory import BaseMemoryState
 from turtle_toolkit.modules.base_module import BaseModuleState
 from turtle_toolkit.modules.data_memory import DataMemory
 from turtle_toolkit.modules.decoder import DecodedInstruction, DecodeUnit
-from turtle_toolkit.modules.instruction_memory import InstructionMemory
+from turtle_toolkit.modules.instruction_memory import (
+    InstructionBinary,
+    InstructionMemory,
+)
 from turtle_toolkit.modules.program_counter import ProgramCounter
-from turtle_toolkit.modules.register_file import RegisterFile
+from turtle_toolkit.modules.register_file import RegisterFile, RegisterFileState
 
 ALU_NAME = "ALU"
 DECODER_NAME = "Decoder"
@@ -25,6 +35,9 @@ INSTRUCTION_MEMORY_NAME = "InstructionMemory"
 DATA_MEMORY_NAME = "DataMemory"
 REGISTER_FILE_NAME = "RegisterFile"
 PROGRAM_COUNTER_NAME = "ProgramCounter"
+
+AddressTypes = Union[InstructionAddressBusValue, DataAddressBusValue]
+DataTypes = Union[InstructionAddressBusValue, InstructionBinary]
 
 
 class SimulationTimeout(Exception):
@@ -358,7 +371,8 @@ class Simulator(metaclass=SingletonMeta):
 
             return result
         except Exception as e:
-            logger.error(f"Simulation state: {self._state}")
+            formatted_state = self.format_simulator_state()
+            logger.error(f"Simulation state:\n{formatted_state}")
             logger.error(f"Simulation failed: {e}")
             raise e
         raise RuntimeError("Simulation failed")
@@ -366,6 +380,113 @@ class Simulator(metaclass=SingletonMeta):
     def get_state(self) -> SimulatorState:
         """Get the current state of the simulator."""
         return self._state
+
+    def _format_memory_contents(
+        self, memory_dict: Dict[AddressTypes, DataTypes]
+    ) -> str:
+        """Format memory contents in a more readable way.
+
+        Args:
+            memory_dict: Dictionary of memory values
+            address_type: Type of address (Instruction or Data)
+
+        Returns:
+            Formatted string representation of memory contents
+        """
+        if len(memory_dict) == 0:
+            return "\tMemory is unwritten."
+
+        result = []
+
+        def _get_addr_unsigned_value(
+            addr_value_pair: Tuple[AddressTypes, DataTypes],
+        ) -> int:
+            """Get the unsigned value of the address."""
+            if hasattr(addr_value_pair[0], "unsigned_value"):
+                return addr_value_pair[0].unsigned_value()
+            else:
+                raise ValueError(
+                    f"Unsupported address type: {type(addr_value_pair[0])}"
+                )
+
+        for address, value in sorted(memory_dict.items(), key=_get_addr_unsigned_value):
+            if isinstance(value, InstructionBinary):
+                unsigned = int.from_bytes(value.data, byteorder="little")
+                hex_width = len(value.data) * 2
+                dec_width = len(str(2**INSTRUCTION_WIDTH - 1))
+            else:
+                unsigned = value.unsigned_value()
+                hex_width = value._bus_width // 4
+                dec_width = len(str(2**value._bus_width - 1))
+            result.append(
+                f"\t{address.unsigned_value():#0{((address._bus_width // 4)+2)}x}: {unsigned:<{dec_width}} ({unsigned:#0{hex_width+2}x})"
+            )
+
+        return "\n".join(result)
+
+    def format_simulator_state(self) -> str:
+        """Format the simulator state in a more readable way."""
+        instr_mem_state: Optional[BaseModuleState] = self._state.modules.get(
+            INSTRUCTION_MEMORY_NAME, None
+        )
+        data_mem_state: Optional[BaseModuleState] = self._state.modules.get(
+            DATA_MEMORY_NAME, None
+        )
+
+        if instr_mem_state is None:
+            raise RuntimeError(
+                f"InstructionMemory module not found in state: {self._state.modules}"
+            )
+        if data_mem_state is None:
+            raise RuntimeError(
+                f"DataMemory module not found in state: {self._state.modules}"
+            )
+        if not isinstance(instr_mem_state, BaseMemoryState):
+            raise RuntimeError(
+                f"InstructionMemory state is not of type BaseMemoryState: {type(instr_mem_state)}"
+            )
+        if not isinstance(data_mem_state, BaseMemoryState):
+            raise RuntimeError(
+                f"DataMemory state is not of type BaseMemoryState: {type(data_mem_state)}"
+            )
+
+        instr_memory_dict = instr_mem_state.memory
+        data_memory_dict = data_mem_state.memory
+
+        reg_file_state = self._state.modules.get(REGISTER_FILE_NAME, None)
+
+        if reg_file_state is None:
+            raise RuntimeError(
+                f"RegisterFile module not found in state: {self._state.modules}"
+            )
+        if not isinstance(reg_file_state, RegisterFileState):
+            raise RuntimeError(
+                f"RegisterFile state is not of type RegisterFileState: {type(reg_file_state)}"
+            )
+
+        result = [
+            f"Simulator State (Cycle: {self._state.cycle_count}, Halted: {self._state.halted}, Stalled: {self._state.stalled})",
+            "",
+            "Instruction Memory:",
+            self._format_memory_contents(instr_memory_dict),
+        ]
+
+        # Add data memory section
+        result.extend(
+            ["", "Data Memory:", self._format_memory_contents(data_memory_dict)]
+        )
+
+        # Add register file if available
+        result.extend(["", "Register File:"])
+
+        reg_name_max_len = max(len(member.name) for member in RegisterIndex)
+
+        for reg, value in reg_file_state.registers.items():
+            result.append(
+                f"\t{reg.name:{reg_name_max_len}}: {value.unsigned_value():<4}({value.unsigned_value():#0{(value._bus_width // 4) + 2}x})"
+            )
+
+        return "\n".join(result)
 
     def reset(self) -> None:
         """Reset the simulator state."""

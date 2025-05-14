@@ -123,6 +123,30 @@ class BusValue:
         else:
             return self.unsigned_value() == other
 
+    def __lt__(self, other: object) -> bool:
+        """Throw an error if directly comparing since we don't know if they are signed or unsigned."""
+        raise NotImplementedError(
+            "Direct comparison of BusValue objects is not supported. "
+        )
+
+    def __le__(self, other: object) -> bool:
+        """Throw an error if directly comparing since we don't know if they are signed or unsigned."""
+        raise NotImplementedError(
+            "Direct comparison of BusValue objects is not supported. "
+        )
+
+    def __gt__(self, other: object) -> bool:
+        """Throw an error if directly comparing since we don't know if they are signed or unsigned."""
+        raise NotImplementedError(
+            "Direct comparison of BusValue objects is not supported. "
+        )
+
+    def __ge__(self, other: object) -> bool:
+        """Throw an error if directly comparing since we don't know if they are signed or unsigned."""
+        raise NotImplementedError(
+            "Direct comparison of BusValue objects is not supported. "
+        )
+
     def to_binary(self) -> str:
         """Return the binary representation of the DataBusValue object."""
         return format(self.unsigned_value(), f"0{self._bus_width}b")

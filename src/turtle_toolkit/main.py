@@ -36,8 +36,13 @@ def read_text_file(file_path: str) -> str:
         sys.exit(1)
 
 
-def read_binary_file(file_path: str) -> bytes:
+def read_binary_file(file_path: str, allow_non_bin_ext: bool = False) -> bytes:
     """Read binary data from a file."""
+    if not allow_non_bin_ext and not file_path.endswith(".bin"):
+        logger.error(
+            f"File {file_path} does not have a .bin extension. Did you mean to use 'run'? Use --allow-non-bin-ext to override."
+        )
+        sys.exit(1)
     try:
         with open(file_path, "rb") as file:
             return file.read()
@@ -85,22 +90,16 @@ def simulate_binary(binary: bytes, max_cycles: int = 10000) -> None:
     simulator.reset()
     simulator.load_binary(binary)
 
-    try:
-        result = simulator.run_until_halt(max_cycles)
-        logger.info(f"Simulation completed in {result.cycle_count} cycles")
+    result = simulator.run_until_halt(max_cycles)
+    logger.info(f"Simulation completed in {result.cycle_count} cycles")
 
-        # Print final state summary
-        print("\nSimulation Results:")
-        print(f"Total cycles: {result.cycle_count}")
-        print(f"Halted: {result.state.halted}")
-        print("Final register values:")
-        reg_file = simulator._register_file
-        print(f"  ACC: {reg_file.get_acc_value()}")
-        print(f"  Status: {reg_file.get_status_register_value()}")
+    # Print final state summary using our improved formatting
+    print("\nSimulation Results:")
+    print(f"Total cycles: {result.cycle_count}")
+    print(f"Halted: {result.state.halted}")
 
-    except Exception as e:
-        logger.error(f"Simulation failed: {e}")
-        sys.exit(1)
+    # Print a nicely formatted state summary
+    print("\n" + simulator.format_simulator_state())
 
 
 def main() -> None:
@@ -115,7 +114,7 @@ def main() -> None:
         assemble_file(args.input_file, args.output)
 
     elif args.command == "simulate":
-        binary = read_binary_file(args.input_file)
+        binary = read_binary_file(args.input_file, args.allow_non_bin_ext)
         simulate_binary(binary, args.max_cycles)
 
     elif args.command == "run":

@@ -678,3 +678,43 @@ def test_all_registers(simulator):
         assert state.modules[REGISTER_FILE_NAME].registers[
             RegisterIndex(i)
         ] == DataBusValue(i + 1)
+
+
+def test_long_program(simulator):
+    # Test a long program that runs for many cycles
+    source = """
+        SET 0
+        PUT R1
+        PUT R2
+        SET 200
+        PUT R3
+        SET 100
+        PUT R0
+        GET R0
+        BZ 26
+        GET R1
+        ADD R3
+        PUT R1
+        BCS 4
+        JMPI 8
+        GET R2
+        ADDI 1
+        PUT R2
+        GET R0
+        SUBI 1
+        PUT R0
+        JMPI -26
+        HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt(max_cycles=1000000)
+    state = simulator.get_state()
+    assert state.modules[REGISTER_FILE_NAME].registers[
+        RegisterIndex.R2
+    ] == DataBusValue(0x4E)
+    assert state.modules[REGISTER_FILE_NAME].registers[
+        RegisterIndex.R1
+    ] == DataBusValue(0x20)
+    cycle_count = simulator.get_state().cycle_count
+    print(f"Cycle count: {cycle_count}")  # This will be captured by capsys

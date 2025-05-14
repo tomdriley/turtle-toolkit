@@ -45,6 +45,11 @@ def parse_args() -> argparse.Namespace:
         default=10000,
         help="Maximum number of cycles to simulate (default: 10000)",
     )
+    simulate_parser.add_argument(
+        "--allow-non-bin-ext",
+        action="store_true",
+        help="Allow non-.bin file extensions for binary files",
+    )
 
     # Combined command (assemble and simulate)
     combined_parser = subparsers.add_parser(
@@ -58,8 +63,8 @@ def parse_args() -> argparse.Namespace:
         "-m",
         "--max-cycles",
         type=int,
-        default=10000,
-        help="Maximum number of cycles to simulate (default: 10000)",
+        default=100000,
+        help="Maximum number of cycles to simulate (default: 100000)",
     )
 
     return parser.parse_args()
