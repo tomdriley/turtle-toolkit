@@ -15,7 +15,7 @@ poetry install
 For using the tool:
 
 ```bash
-pipx install . --python python3.13
+pipx install . --python python3.11
 ```
 
 ---
