@@ -16,6 +16,7 @@ packages = [{include = "turtle_toolkit", from = "src"}]
 
 [project.scripts]
 turtle-toolkit = "turtle_toolkit.main:main"
+benchmark = "turtle_toolkit.benchmark:main"
 
 [tool.poetry.group.dev.dependencies]
 flake8-pyproject = "^1.2.3"

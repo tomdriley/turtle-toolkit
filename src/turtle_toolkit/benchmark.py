@@ -50,5 +50,9 @@ def benchmark_simulator():
     )
 
 
-if __name__ == "__main__":
+def main():
     benchmark_simulator()
+
+
+if __name__ == "__main__":
+    main()
