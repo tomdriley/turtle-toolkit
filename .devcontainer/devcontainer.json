@@ -15,7 +15,8 @@
         "ms-python.debugpy",
         "ms-azuretools.vscode-docker",
         "ms-vscode-remote.remote-containers",
-        "GitHub.copilot-chat"
+        "GitHub.copilot-chat",
+        "ms-python.isort"
       ]
     }
   }
