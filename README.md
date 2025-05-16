@@ -40,6 +40,22 @@ poetry run benchmark
 
 ---
 
+## Running Profiler
+
+To profile the bench mark with cProfile, you can use the following command:
+
+```bash
+poetry run python -m cProfile -o benchmark.prof ./src/turtle_toolkit/benchmark.py
+```
+
+To view the profile results, you can use the `snakeviz` tool:
+
+```bash
+poetry run snakeviz benchmark.prof
+```
+
+---
+
 ## Example Usage
 
 ### Assemble Example
