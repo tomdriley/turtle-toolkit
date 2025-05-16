@@ -27,7 +27,7 @@ def benchmark_simulator():
     logger.info("Starting benchmark...")
     assembly_code = read_text_file(LARGE_MULTIPLICATION_ASM)
     binary = Assembler.assemble(assembly_code)
-    num_runs = 10
+    num_runs = 100
     total_cycles = 0
     logger.disabled = True
     start_time = time.time()
