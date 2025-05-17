@@ -6,6 +6,8 @@ Date: 2025-05-04
 from dataclasses import dataclass
 from typing import ClassVar, Self
 
+import numpy as np
+
 from turtle_toolkit.common.config import (
     DATA_ADDRESS_WIDTH,
     DATA_WIDTH,
@@ -21,72 +23,57 @@ class BusValue:
         data (int): The data value of the bus.
     """
 
-    value: int
-    _bus_width: ClassVar[int] = DATA_WIDTH
+    value: np.uint16
+    BUS_WIDTH: ClassVar[np.uint16] = np.uint16(DATA_WIDTH)
+    BUS_WIDTH_MASK: ClassVar[np.uint16] = np.uint16((1 << DATA_WIDTH) - 1)
+    SIGN_BIT_MASK: ClassVar[np.uint16] = np.uint16(1 << (DATA_WIDTH - 1))
+    MIN_UNSIGNED_VALUE: ClassVar[np.uint16] = np.uint16(0)
+    MAX_UNSIGNED_VALUE: ClassVar[np.uint16] = BUS_WIDTH_MASK
+    MIN_SIGNED_VALUE: ClassVar[np.int16] = np.int16(SIGN_BIT_MASK)
+    MAX_SIGNED_VALUE: ClassVar[np.int16] = MIN_SIGNED_VALUE - np.int16(1)
 
     def __post_init__(self):
         """Post-initialization to ensure value is within bounds."""
         # Ensure the value is within the union of signed and unsigned ranges
-        if not (self.min_signed_value() <= self.value <= self.max_unsigned_value()):
+        if not (self.MIN_SIGNED_VALUE <= self.value <= self.MAX_UNSIGNED_VALUE):
             raise ValueError(f"Value {self.value} is out of bounds for bus data type.")
-        object.__setattr__(self, "value", self.value % (2**self._bus_width))
+        object.__setattr__(self, "value", np.uint16(self.value & self.BUS_WIDTH_MASK))
 
-    def bit_length(self) -> int:
+    def bit_length(self) -> np.uint16:
         """Return the bit length of the data."""
-        return self._bus_width
+        return self.BUS_WIDTH
 
-    def unsigned_value(self) -> int:
+    def unsigned_value(self) -> np.uint16:
         """Return the unsigned value of the bus data."""
-        return self.value % (2**self._bus_width)
+        return self.value & self.BUS_WIDTH_MASK
 
-    def signed_value(self) -> int:
+    def signed_value(self) -> np.int16:
         """Return the signed value of the bus data."""
-        if self.unsigned_value() > self.max_signed_value():
-            return self.unsigned_value() - 2**self._bus_width
-        return self.unsigned_value()
+        val = self.unsigned_value()
+        return np.int16((self.SIGN_BIT_MASK ^ val) - self.SIGN_BIT_MASK)
 
-    def is_negative(self) -> bool:
+    def is_negative(self) -> np.bool:
         """Check if the bus data is negative."""
         return self.signed_value() < 0
 
-    def get_slice(self, start: int, end: int) -> Self:
+    def get_slice(self, start: np.uint16, end: np.uint16) -> Self:
         """Return a slice of the bus data."""
-        if start < 0 or end > self._bus_width or start >= end:
+        if start < 0 or end > self.BUS_WIDTH or start >= end:
             raise ValueError("Invalid slice indices.")
-        mask = (1 << (end - start)) - 1
+        mask: np.uint16 = (1 << (end - start)) - np.uint16(1)
         sliced_value = (self.unsigned_value() >> start) & mask
         return self.__class__(sliced_value)
-
-    @staticmethod
-    def min_unsigned_value() -> int:
-        """Return the minimum value of the bus data."""
-        return 0
-
-    @classmethod
-    def max_unsigned_value(cls: type[Self]) -> int:
-        """Return the maximum value of the bus data."""
-        return 2**cls._bus_width - 1
-
-    @classmethod
-    def min_signed_value(cls: type[Self]) -> int:
-        """Return the minimum signed value of the bus data."""
-        return -(2 ** (cls._bus_width - 1))
-
-    @classmethod
-    def max_signed_value(cls: type[Self]) -> int:
-        """Return the maximum signed value of the bus data."""
-        return 2 ** (cls._bus_width - 1) - 1
 
     def __add__(self, other: Self) -> Self:
         """Add two DataBusValue objects."""
         return self.__class__(
-            (self.unsigned_value() + other.unsigned_value()) % (2**self._bus_width)
+            (self.unsigned_value() + other.unsigned_value()) & self.BUS_WIDTH_MASK
         )
 
     def __sub__(self, other: Self) -> Self:
         """Subtract two DataBusValue objects."""
         return self.__class__(
-            (self.unsigned_value() - other.unsigned_value()) % (2**self._bus_width)
+            (self.unsigned_value() - other.unsigned_value()) & self.BUS_WIDTH_MASK
         )
 
     def __and__(self, other: Self) -> Self:
@@ -103,7 +90,7 @@ class BusValue:
 
     def __invert__(self) -> Self:
         """Bitwise NOT of the DataBusValue object."""
-        inverted_value = ~self.unsigned_value() & self.max_unsigned_value()
+        inverted_value = ~self.unsigned_value() & self.MAX_UNSIGNED_VALUE
         return self.__class__(inverted_value)
 
     def __str__(self) -> str:
@@ -149,7 +136,7 @@ class BusValue:
 
     def to_binary(self) -> str:
         """Return the binary representation of the DataBusValue object."""
-        return format(self.unsigned_value(), f"0{self._bus_width}b")
+        return format(self.unsigned_value(), f"0{self.BUS_WIDTH}b")
 
 
 class DataBusValue(BusValue):
@@ -169,7 +156,7 @@ class InstructionAddressBusValue(BusValue):
     specific to instruction address buses.
     """
 
-    _bus_width: ClassVar[int] = INSTRUCTION_ADDRESS_WIDTH
+    BUS_WIDTH: ClassVar[np.uint16] = np.uint16(INSTRUCTION_ADDRESS_WIDTH)
 
 
 class DataAddressBusValue(BusValue):
@@ -179,4 +166,4 @@ class DataAddressBusValue(BusValue):
     specific to data address buses.
     """
 
-    _bus_width: ClassVar[int] = DATA_ADDRESS_WIDTH
+    BUS_WIDTH: ClassVar[np.uint16] = np.uint16(DATA_ADDRESS_WIDTH)

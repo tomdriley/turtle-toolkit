@@ -13,6 +13,8 @@ import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
+
 from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
 from turtle_toolkit.common.instruction_data import (
@@ -51,7 +53,7 @@ class Instruction:
     function: ArithLogicFunction | RegMemoryFunction | JumpFunction = (
         ArithLogicFunction.ADD
     )  # Bits 4-7
-    data_immediate: Optional[DataBusValue] = DataBusValue(0)  # Bits 8-15
+    data_immediate: Optional[DataBusValue] = DataBusValue(np.uint16(0))  # Bits 8-15
     register: Optional[RegisterIndex] = None  # Bits 8-11
 
 
@@ -161,14 +163,14 @@ class Assembler:
         raise SyntaxError(f"Unknown opcode: {opcode}")
 
     @staticmethod
-    def parse_immediate(operand: str) -> int:
+    def parse_immediate(operand: str) -> np.uint16:
         operand = operand.strip().replace("_", "")
         if operand.startswith("0X"):
-            return int(operand, 16)
+            return np.uint16(int(operand, 16))
         elif operand.startswith("0B"):
-            return int(operand, 2)
+            return np.uint16(int(operand, 2))
         elif operand.lstrip("-").isdigit():
-            return int(operand)
+            return np.uint16(int(operand))
         raise SyntaxError(f"Invalid immediate: {operand}")
 
     @staticmethod

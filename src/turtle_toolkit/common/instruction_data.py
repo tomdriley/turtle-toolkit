@@ -68,6 +68,8 @@ class RegisterIndex(Enum):
     STATUS = 0b1111
 
 
+RegisterIndex.STATUS.value
+
 NOP_OPCODE_TEXTS = {"NOP"}
 
 HALT_OPCODE_TEXTS = {"HALT"}
