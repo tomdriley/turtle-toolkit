@@ -8,6 +8,7 @@ from typing import Optional
 
 import numpy as np
 from line_profiler import profile
+from numpy.typing import NDArray
 
 from turtle_toolkit.common.config import (
     DATA_ADDRESS_WIDTH,
@@ -36,7 +37,7 @@ class RegisterFileState(BaseModuleState):
     """State of the Register File."""
 
     # Register values
-    registers: np.ndarray = field(
+    registers: NDArray[np.uint16] = field(
         default_factory=lambda: (
             lambda arr: (
                 arr.__setitem__(RegisterIndex.STATUS.value, np.uint16(3)),
@@ -56,9 +57,10 @@ class RegisterFile(BaseModule):
         self.state = RegisterFileState()
         super().__init__(name, self.state)
 
-    def get_acc_value(self):
+    def get_acc_value(self) -> np.uint16:
         """Get the value of the accumulator register."""
-        return self.state.registers[RegisterIndex.ACC.value]
+        value: np.uint16 = self.state.registers[RegisterIndex.ACC.value]
+        return value
 
     def get_register_value(self, register_index: RegisterIndex) -> DataBusValue:
         return DataBusValue(self.state.registers[register_index.value])
@@ -116,7 +118,7 @@ class RegisterFile(BaseModule):
     def set_next_acc_value(self, value: DataBusValue) -> None:
         self.state.pending_accumulator = np.uint16(value.value)
 
-    @profile
+    @profile  # type: ignore[misc]
     def update_state(self) -> None:
         if self.state.pending_register is not None and self.state.pending_value is None:
             raise ValueError(

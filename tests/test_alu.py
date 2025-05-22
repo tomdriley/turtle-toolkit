@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 
 from turtle_toolkit.common.data_types import DataBusValue
-from turtle_toolkit.modules.alu import ALU, ArithLogicFunction
+from turtle_toolkit.common.instruction_data import ArithLogicFunction
+from turtle_toolkit.modules.alu import ALU
 
 
 @pytest.fixture

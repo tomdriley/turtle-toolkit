@@ -9,8 +9,8 @@ import numpy as np
 
 from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 from turtle_toolkit.common.data_types import InstructionAddressBusValue
+from turtle_toolkit.common.instruction_data import BranchCondition
 from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
-from turtle_toolkit.modules.decoder import BranchCondition
 from turtle_toolkit.modules.register_file import StatusRegisterValue
 
 
@@ -25,17 +25,17 @@ class ProgramCounter(BaseModule):
         self.state = ProgramCounterState()
         super().__init__(name, self.state)
 
-    def increment(self):
+    def increment(self) -> None:
         """Increment the program counter."""
         self.state.next_value = self.state.value + InstructionAddressBusValue(
-            INSTRUCTION_WIDTH // 8
+            np.uint16(INSTRUCTION_WIDTH // 8)
         )
 
-    def jump_relative(self, offset: InstructionAddressBusValue):
+    def jump_relative(self, offset: InstructionAddressBusValue) -> None:
         """Set the program counter to a specific value."""
         self.state.next_value = self.state.value + offset
 
-    def jump_absolute(self, address: InstructionAddressBusValue):
+    def jump_absolute(self, address: InstructionAddressBusValue) -> None:
         """Set the program counter to a specific value."""
         self.state.next_value = address
 
@@ -44,7 +44,7 @@ class ProgramCounter(BaseModule):
         status_register: StatusRegisterValue,
         offset: InstructionAddressBusValue,
         branch_condition: BranchCondition,
-    ):
+    ) -> None:
         """Conditionally branch based on the status register and branch condition."""
         branch = False
         if branch_condition == BranchCondition.ZERO:
@@ -69,7 +69,7 @@ class ProgramCounter(BaseModule):
         else:
             self.increment()
 
-    def get_current_instruction_address(self):
+    def get_current_instruction_address(self) -> InstructionAddressBusValue:
         """Get the current instruction address."""
         return self.state.value
 

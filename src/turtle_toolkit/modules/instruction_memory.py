@@ -18,10 +18,10 @@ INSTRUCTION_FETCH_LATENCY_CYCLES = 10
 class InstructionBinary:
     data: bytes
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Instruction({self.data.hex()})"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if isinstance(self.data, bytes) and len(self.data) != INSTRUCTION_WIDTH // 8:
             raise ValueError(
                 f"Instruction must be {INSTRUCTION_WIDTH // 8} bytes long, "

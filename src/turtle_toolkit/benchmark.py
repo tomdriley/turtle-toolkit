@@ -9,21 +9,21 @@ from os import path
 from turtle_toolkit.assembler import Assembler
 from turtle_toolkit.common.logger import logger
 from turtle_toolkit.main import read_text_file
-from turtle_toolkit.simulator import Simulator
+from turtle_toolkit.simulator import SimulationResult, Simulator
 
 LOCAL_DIR = path.dirname(path.abspath(__file__))
 EXAMPLES_DIR = path.join(LOCAL_DIR, "../../examples")
 LARGE_MULTIPLICATION_ASM = path.join(EXAMPLES_DIR, "large_multiplication_benchmark.asm")
 
 
-def _run_simulator(binary: bytes):
+def _run_simulator(binary: bytes) -> SimulationResult:
     simulator = Simulator()
     simulator.reset()
     simulator.load_binary(binary)
     return simulator.run_until_halt()
 
 
-def benchmark_simulator():
+def benchmark_simulator() -> None:
     logger.info("Starting benchmark...")
     assembly_code = read_text_file(LARGE_MULTIPLICATION_ASM)
     binary = Assembler.assemble(assembly_code)
@@ -48,9 +48,10 @@ def benchmark_simulator():
     logger.info(
         f"Overall cycles simulated per second: {total_cycles / execution_time:.2f} cycles/s."
     )
+    logger.info(f"Average cycle count: {total_cycles/num_runs}")
 
 
-def main():
+def main() -> None:
     benchmark_simulator()
 
 

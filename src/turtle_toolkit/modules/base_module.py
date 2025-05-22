@@ -19,9 +19,9 @@ class BaseModuleState:
 class BaseModule(ABC):
     """Abstract base class for all simulator modules."""
 
-    def __init__(self, name: str, state=BaseModuleState()) -> None:
+    def __init__(self, name: str, state: BaseModuleState = BaseModuleState()) -> None:
         self.name = name
-        self._state = state
+        self._state: BaseModuleState = state
         self._initialize()
 
     def get_state_ref(self) -> BaseModuleState:

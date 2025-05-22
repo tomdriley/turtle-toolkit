@@ -4,7 +4,7 @@ Date: 2025-05-04
 """
 
 from os import path
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
 import yaml
 
@@ -21,12 +21,16 @@ class Config(metaclass=SingletonMeta):
 
     def __init__(self, config_file: str):
         self.config_file = config_file
-        self.config_data = self.load_config()
+        self.config_data: dict[str, Any] = self.load_config()
 
-    def load_config(self) -> dict:
+    def load_config(self) -> dict[str, Any]:
         """Load the configuration file."""
         with open(self.config_file, "r") as file:
-            return yaml.safe_load(file)
+            # yaml.safe_load returns Any, but we expect a dict
+            config = yaml.safe_load(file)
+            if not isinstance(config, dict):
+                raise TypeError("Config file is not a valid YAML dictionary.")
+            return config
 
     def get(self, key: str, T: Type[ConfigValue]) -> ConfigValue:
         """Get a configuration value by key."""

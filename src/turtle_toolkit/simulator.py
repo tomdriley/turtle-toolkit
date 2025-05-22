@@ -70,13 +70,13 @@ class SimulationResult:
 class Simulator(metaclass=SingletonMeta):
     """Singleton class for the simulator."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         logger.debug("Initializing Simulator instance.")
         self.reset()
         logger.info("Simulator instance created.")
 
     def initialize_modules(self) -> None:
-        self._state: SimulatorState
+        self._state: SimulatorState = SimulatorState()
         self._alu: ALU = ALU(ALU_NAME)
         self._decode_unit: DecodeUnit = DecodeUnit(DECODER_NAME)
         self._instruction_memory: InstructionMemory = InstructionMemory(
@@ -193,7 +193,7 @@ class Simulator(metaclass=SingletonMeta):
     ) -> bool:
         """Execute ALU operation and update state."""
         alu_outputs = self._alu.execute(
-            self._register_file.get_acc_value(),
+            DataBusValue(self._register_file.get_acc_value()),
             operand_b,
             decoded_instruction.alu_function,
         )
@@ -223,7 +223,8 @@ class Simulator(metaclass=SingletonMeta):
             )
         elif decoded_instruction.register_file_put:
             self._register_file.set_next_register_value(
-                decoded_instruction.register_index, self._register_file.get_acc_value()
+                decoded_instruction.register_index,
+                DataBusValue(self._register_file.get_acc_value()),
             )
             logger.debug(
                 f"Set status register to {decoded_instruction.immediate_data_value}."
@@ -268,7 +269,8 @@ class Simulator(metaclass=SingletonMeta):
     def _handle_memory_store(self) -> bool:
         """Handle memory store operation."""
         self._data_memory.request_store(
-            self._register_file.get_dmar_value(), self._register_file.get_acc_value()
+            self._register_file.get_dmar_value(),
+            DataBusValue(self._register_file.get_acc_value()),
         )
         if not self._data_memory.store_complete():
             self._state.stalled = True
@@ -489,10 +491,8 @@ class Simulator(metaclass=SingletonMeta):
 
     def reset(self) -> None:
         """Reset the simulator state."""
-        logger.debug("Resetting simulator state.")
-        self._state = SimulatorState()
         self.initialize_modules()
-        logger.info("Simulator state reset.")
+        self._state = SimulatorState()
 
     def load_program(self, program: str) -> None:
         """Load a program into the instruction memory."""

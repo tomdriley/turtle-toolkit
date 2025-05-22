@@ -42,7 +42,7 @@ class BusValue:
             return value | ~cls.BUS_WIDTH_MASK
         return value
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Post-initialization to ensure value is within bounds."""
         # Ensure the value is within the union of signed and unsigned ranges
         if np.int16(self.value) < self.MIN_SIGNED_VALUE:
@@ -54,7 +54,7 @@ class BusValue:
                 f"Value {self.value} is greater than the maximum unsigned value {self.MAX_UNSIGNED_VALUE}. Interpretated as {np.uint16(self.value)}"
             )
         object.__setattr__(
-            self, "value", self.sign_extend(self.value)
+            self, "value", self.sign_extend(np.uint16(self.value))
         )  # workaround for frozen dataclass
 
     def bit_length(self) -> np.uint16:
@@ -124,9 +124,9 @@ class BusValue:
     def __eq__(self, other: object) -> bool:
         """Check equality of two DataBusValue objects or a DataBusValue and an int."""
         if isinstance(other, BusValue):
-            return self.unsigned_value() == other.unsigned_value()
+            return bool(self.unsigned_value() == other.unsigned_value())
         else:
-            return self.unsigned_value() == other
+            return bool(self.unsigned_value() == other)
 
     def __lt__(self, other: object) -> bool:
         """Throw an error if directly comparing since we don't know if they are signed or unsigned."""

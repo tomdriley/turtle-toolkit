@@ -12,8 +12,8 @@ T = TypeVar("T")
 class SingletonMeta(type, Generic[T]):
     """Thread-safe singleton meta class."""
 
-    _instances: Dict["SingletonMeta"[T], T] = {}
-    _lock: ClassVar = threading.Lock()
+    _instances: Dict[type, T] = {}
+    _lock: ClassVar[threading.Lock] = threading.Lock()
 
     def __call__(cls, *args: Any, **kwargs: Any) -> T:
         """Create a new instance of the singleton class if it doesn't exist."""
