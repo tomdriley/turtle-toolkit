@@ -5,6 +5,8 @@ Date: 2025-05-04
 
 from typing import Optional
 
+import numpy as np
+
 from turtle_toolkit.common.data_types import DataBusValue
 from turtle_toolkit.common.instruction_data import ArithLogicFunction
 from turtle_toolkit.common.logger import logger
@@ -12,9 +14,9 @@ from turtle_toolkit.modules.base_module import BaseModule
 
 
 class ALUOutputs:
-    result: DataBusValue = DataBusValue(0)
-    signed_overflow: bool = False
-    carry_flag: bool = False
+    result: DataBusValue = DataBusValue(np.uint16(0))
+    signed_overflow: np.bool = np.bool(False)
+    carry_flag: np.bool = np.bool(False)
 
 
 class ALU(BaseModule):
@@ -38,7 +40,7 @@ class ALU(BaseModule):
             # Carry flag is set if the result is greater than the max unsigned value
             outputs.carry_flag = (
                 operand_a.unsigned_value() + operand_b.unsigned_value()
-            ) > DataBusValue.max_unsigned_value()
+            ) > DataBusValue.MAX_UNSIGNED_VALUE
             # Overflow occurs if the sign of the result is different from the sign of
             # both operands
             outputs.signed_overflow = (

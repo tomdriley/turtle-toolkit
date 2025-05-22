@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.assembler import Assembler
@@ -32,7 +33,7 @@ def test_fetch_after_side_load(instruction_memory):
     instruction_memory.side_load(binary)
 
     # Fetch first instruction
-    instruction_memory.request_fetch(InstructionAddressBusValue(0))
+    instruction_memory.request_fetch(InstructionAddressBusValue(np.uint16(0)))
     for _ in range(10):  # INSTRUCTION_FETCH_LATENCY_CYCLES
         assert not instruction_memory.fetch_ready()
         instruction_memory.update_state()
@@ -71,7 +72,7 @@ def test_fetch_after_side_load_str(instruction_memory):
     instruction_memory.side_load(binary)
 
     # Fetch first instruction
-    instruction_memory.request_fetch(InstructionAddressBusValue(0))
+    instruction_memory.request_fetch(InstructionAddressBusValue(np.uint16(0)))
     for _ in range(10):  # INSTRUCTION_FETCH_LATENCY_CYCLES
         assert not instruction_memory.fetch_ready()
         instruction_memory.update_state()
@@ -90,7 +91,7 @@ def test_fetch_after_side_load_str(instruction_memory):
 
 def test_fetch_from_unloaded_address(instruction_memory):
     """Test fetching from an address that hasn't been loaded"""
-    instruction_memory.request_fetch(InstructionAddressBusValue(0))
+    instruction_memory.request_fetch(InstructionAddressBusValue(np.uint16(0)))
     for _ in range(10):
         instruction_memory.update_state()
     assert instruction_memory.fetch_ready()
@@ -101,7 +102,7 @@ def test_fetch_from_unloaded_address(instruction_memory):
 
 def test_concurrent_fetches(instruction_memory):
     """Test that concurrent fetches to different addresses fail"""
-    instruction_memory.request_fetch(InstructionAddressBusValue(0))
+    instruction_memory.request_fetch(InstructionAddressBusValue(np.uint16(0)))
     with pytest.raises(ValueError) as excinfo:
         instruction_memory.request_fetch(
             InstructionAddressBusValue(INSTRUCTION_WIDTH // 8)

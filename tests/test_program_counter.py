@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.common.data_types import InstructionAddressBusValue
@@ -23,18 +24,18 @@ def test_increment(program_counter):
 
 def test_jump_relative(program_counter):
     # Test positive offset
-    program_counter.jump_relative(InstructionAddressBusValue(6))
+    program_counter.jump_relative(InstructionAddressBusValue(np.uint16(6)))
     program_counter.update_state()
     assert program_counter.get_current_instruction_address() == 6
 
     # Test negative offset
-    program_counter.jump_relative(InstructionAddressBusValue(-4))
+    program_counter.jump_relative(InstructionAddressBusValue(np.int16(-4)))
     program_counter.update_state()
     assert program_counter.get_current_instruction_address() == 2
 
 
 def test_jump_absolute(program_counter):
-    program_counter.jump_absolute(InstructionAddressBusValue(100))
+    program_counter.jump_absolute(InstructionAddressBusValue(np.uint16(100)))
     program_counter.update_state()
     assert program_counter.get_current_instruction_address() == 100
 
@@ -46,7 +47,7 @@ def test_conditional_branch_zero_flag():
         zero=True, positive=False, carry_set=False, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.ZERO
+        status_reg, InstructionAddressBusValue(np.uint16(6)), BranchCondition.ZERO
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 6
@@ -57,7 +58,7 @@ def test_conditional_branch_zero_flag():
         zero=False, positive=False, carry_set=False, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.ZERO
+        status_reg, InstructionAddressBusValue(np.uint16(6)), BranchCondition.ZERO
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 2  # Should increment instead
@@ -70,7 +71,7 @@ def test_conditional_branch_positive_flag():
         zero=False, positive=True, carry_set=False, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.POSITIVE
+        status_reg, InstructionAddressBusValue(np.uint16(6)), BranchCondition.POSITIVE
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 6
@@ -81,7 +82,7 @@ def test_conditional_branch_positive_flag():
         zero=False, positive=False, carry_set=False, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.POSITIVE
+        status_reg, InstructionAddressBusValue(np.uint16(6)), BranchCondition.POSITIVE
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 2  # Should increment instead
@@ -94,7 +95,7 @@ def test_conditional_branch_carry_flag():
         zero=False, positive=False, carry_set=True, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.CARRY_SET
+        status_reg, InstructionAddressBusValue(np.uint16(6)), BranchCondition.CARRY_SET
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 6
@@ -105,7 +106,7 @@ def test_conditional_branch_carry_flag():
         zero=False, positive=False, carry_set=False, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.CARRY_SET
+        status_reg, InstructionAddressBusValue(np.uint16(6)), BranchCondition.CARRY_SET
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 2  # Should increment instead
@@ -118,7 +119,9 @@ def test_conditional_branch_overflow_flag():
         zero=False, positive=False, carry_set=False, signed_overflow_set=True
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.OVERFLOW_SET
+        status_reg,
+        InstructionAddressBusValue(np.uint16(6)),
+        BranchCondition.OVERFLOW_SET,
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 6
@@ -129,7 +132,9 @@ def test_conditional_branch_overflow_flag():
         zero=False, positive=False, carry_set=False, signed_overflow_set=False
     )
     pc.conditionally_branch(
-        status_reg, InstructionAddressBusValue(6), BranchCondition.OVERFLOW_SET
+        status_reg,
+        InstructionAddressBusValue(np.uint16(6)),
+        BranchCondition.OVERFLOW_SET,
     )
     pc.update_state()
     assert pc.get_current_instruction_address() == 2  # Should increment instead

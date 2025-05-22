@@ -6,6 +6,8 @@ Date: 2025-05-04
 from dataclasses import dataclass
 from typing import Optional
 
+import numpy as np
+
 from turtle_toolkit.common.data_types import DataBusValue, InstructionAddressBusValue
 from turtle_toolkit.common.instruction_data import (
     ArithLogicFunction,
@@ -75,7 +77,9 @@ class DecodeUnit(BaseModule):
             ),
             branch_instruction=(branch_field == 1),
             branch_condition=BranchCondition(branch_cond_field),
-            immediate_address_value=InstructionAddressBusValue(addr_imm_field),
+            immediate_address_value=InstructionAddressBusValue(
+                np.uint16(addr_imm_field)
+            ),
             alu_instruction=(
                 is_alu := (
                     branch_field == 0
@@ -88,7 +92,7 @@ class DecodeUnit(BaseModule):
             alu_immediate_instruction=(op_field == Opcode.ARITH_LOGIC_IMM.value),
             alu_function=ArithLogicFunction(func_field) if is_alu else None,
             register_index=RegisterIndex(reg_idx_field),
-            immediate_data_value=DataBusValue(data_imm_field),
+            immediate_data_value=DataBusValue(np.uint16(data_imm_field)),
             register_file_instruction=(
                 branch_field == 0
                 and op_field == Opcode.REG_MEMORY.value

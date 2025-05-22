@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.common.data_types import DataAddressBusValue, DataBusValue
@@ -19,8 +20,8 @@ def test_initial_state(data_memory):
 
 def test_store_and_load(data_memory):
     """Test storing and then loading a value"""
-    address = DataAddressBusValue(0x100)
-    value = DataBusValue(42)
+    address = DataAddressBusValue(np.int16(0x100))
+    value = DataBusValue(np.uint16(42))
 
     # Store the value
     data_memory.request_store(address, value)
@@ -41,26 +42,32 @@ def test_store_and_load(data_memory):
 
 def test_concurrent_load_store_different_addresses(data_memory):
     """Test that concurrent load/store operations to different addresses fail"""
-    data_memory.request_store(DataAddressBusValue(0x100), DataBusValue(42))
+    data_memory.request_store(
+        DataAddressBusValue(np.int16(0x100)), DataBusValue(np.uint16(42))
+    )
     with pytest.raises(ValueError) as excinfo:
-        data_memory.request_store(DataAddressBusValue(0x200), DataBusValue(43))
+        data_memory.request_store(
+            DataAddressBusValue(np.int16(0x200)), DataBusValue(np.uint16(43))
+        )
     assert "while another operation is pending" in str(excinfo.value)
 
 
 def test_load_during_store(data_memory):
     """Test that loading while a store is in progress fails if different address"""
-    data_memory.request_store(DataAddressBusValue(0x100), DataBusValue(42))
+    data_memory.request_store(
+        DataAddressBusValue(np.int16(0x100)), DataBusValue(np.uint16(42))
+    )
     with pytest.raises(ValueError) as excinfo:
-        data_memory.request_load(DataAddressBusValue(0x200))
+        data_memory.request_load(DataAddressBusValue(np.int16(0x200)))
     assert "while another operation is pending" in str(excinfo.value)
 
 
 def test_store_same_address_different_value(data_memory):
     """Test that storing different values to the same address fails"""
-    address = DataAddressBusValue(0x100)
-    data_memory.request_store(address, DataBusValue(42))
+    address = DataAddressBusValue(np.int16(0x100))
+    data_memory.request_store(address, DataBusValue(np.uint16(42)))
     with pytest.raises(ValueError) as excinfo:
-        data_memory.request_store(address, DataBusValue(43))
+        data_memory.request_store(address, DataBusValue(np.uint16(43)))
     assert "while another operation is pending" in str(excinfo.value)
 
 
@@ -73,7 +80,7 @@ def test_load_without_pending_request(data_memory):
 
 def test_load_from_unwritten_address(data_memory):
     """Test that loading from an unwritten address fails"""
-    data_memory.request_load(DataAddressBusValue(0x100))
+    data_memory.request_load(DataAddressBusValue(np.int16(0x100)))
     for _ in range(10):  # MEMORY_LATENCY_CYCLES
         data_memory.update_state()
     assert data_memory.load_ready()

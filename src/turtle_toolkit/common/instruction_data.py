@@ -68,6 +68,8 @@ class RegisterIndex(Enum):
     STATUS = 0b1111
 
 
+MAX_REGISTER_INDEX = max([r.value for r in RegisterIndex])
+
 NOP_OPCODE_TEXTS = {"NOP"}
 
 HALT_OPCODE_TEXTS = {"HALT"}

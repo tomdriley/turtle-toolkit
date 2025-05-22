@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.assembler import Assembler

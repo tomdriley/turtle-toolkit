@@ -5,6 +5,8 @@ Date: 2025-05-04
 
 from typing import Optional
 
+import numpy as np
+
 from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 from turtle_toolkit.common.data_types import InstructionAddressBusValue
 from turtle_toolkit.modules.base_module import BaseModule, BaseModuleState
@@ -13,7 +15,7 @@ from turtle_toolkit.modules.register_file import StatusRegisterValue
 
 
 class ProgramCounterState(BaseModuleState):
-    value = InstructionAddressBusValue(0)
+    value = InstructionAddressBusValue(np.uint16(0))
     next_value: Optional[InstructionAddressBusValue] = None
     stall: bool = False
 

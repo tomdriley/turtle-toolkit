@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.assembler import Assembler
@@ -75,7 +76,7 @@ def test_set(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_load_program(simulator):
@@ -89,7 +90,7 @@ def test_load_program(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_addi_instruction(simulator):
@@ -105,7 +106,7 @@ def test_addi_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(3)
+    ] == DataBusValue(np.uint16(3))
 
 
 def test_put_instruction(simulator):
@@ -121,7 +122,7 @@ def test_put_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.R0
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_get_instruction(simulator):
@@ -139,7 +140,7 @@ def test_get_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_add_instruction(simulator):
@@ -157,7 +158,7 @@ def test_add_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(3)
+    ] == DataBusValue(np.uint16(3))
 
 
 def test_sub_instruction(simulator):
@@ -175,7 +176,7 @@ def test_sub_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(2)
+    ] == DataBusValue(np.uint16(2))
 
 
 def test_and_instruction(simulator):
@@ -251,7 +252,7 @@ def test_inv_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0b11110000)
+    ] == DataBusValue(np.int16(0b11110000))
 
 
 def test_subi_instruction(simulator):
@@ -267,7 +268,7 @@ def test_subi_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(3)
+    ] == DataBusValue(np.uint16(3))
 
 
 def test_andi_instruction(simulator):
@@ -283,7 +284,7 @@ def test_andi_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0b0100)
+    ] == DataBusValue(np.int16(0b0100))
 
 
 def test_ori_instruction(simulator):
@@ -299,7 +300,7 @@ def test_ori_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0b0110)
+    ] == DataBusValue(np.int16(0b0110))
 
 
 def test_xori_instruction(simulator):
@@ -315,7 +316,7 @@ def test_xori_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0b0101)
+    ] == DataBusValue(np.int16(0b0101))
 
 
 def test_jmpi_instruction(simulator):
@@ -332,7 +333,7 @@ def test_jmpi_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0)
+    ] == DataBusValue(np.uint16(0))
 
 
 def test_bz_instruction_taken(simulator):
@@ -349,7 +350,7 @@ def test_bz_instruction_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0)
+    ] == DataBusValue(np.uint16(0))
 
 
 def test_bz_instruction_not_taken(simulator):
@@ -366,7 +367,7 @@ def test_bz_instruction_not_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0)
+    ] == DataBusValue(np.uint16(0))
 
 
 def test_bnz_instruction_taken(simulator):
@@ -383,7 +384,7 @@ def test_bnz_instruction_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_bnz_instruction_not_taken(simulator):
@@ -400,7 +401,7 @@ def test_bnz_instruction_not_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_bp_instruction_taken(simulator):
@@ -417,7 +418,7 @@ def test_bp_instruction_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_bp_instruction_not_taken(simulator):
@@ -434,7 +435,7 @@ def test_bp_instruction_not_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_bn_instruction_taken(simulator):
@@ -451,7 +452,7 @@ def test_bn_instruction_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(-1)
+    ] == DataBusValue(np.int16(-1))
 
 
 def test_bn_instruction_not_taken(simulator):
@@ -468,7 +469,7 @@ def test_bn_instruction_not_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0)
+    ] == DataBusValue(np.uint16(0))
 
 
 def test_bcs_instruction_taken(simulator):
@@ -486,7 +487,7 @@ def test_bcs_instruction_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(5)
+    ] == DataBusValue(np.uint16(5))
 
 
 def test_bcs_instruction_not_taken(simulator):
@@ -504,7 +505,7 @@ def test_bcs_instruction_not_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0)
+    ] == DataBusValue(np.uint16(0))
 
 
 def test_bcc_instruction_taken(simulator):
@@ -540,7 +541,7 @@ def test_bcc_instruction_not_taken(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(0)
+    ] == DataBusValue(np.uint16(0))
 
 
 def test_watchdog_timer(simulator):
@@ -577,8 +578,8 @@ def test_store_instruction(simulator):
     simulator.run_until_halt(max_cycles=100)
     state = simulator.get_state()
     assert state.modules[DATA_MEMORY_NAME].memory[
-        DataAddressBusValue(0x000)
-    ] == DataBusValue(1)
+        DataAddressBusValue(np.int16(0x000))
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_load_instruction(simulator):
@@ -596,7 +597,7 @@ def test_load_instruction(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_store_different_address(simulator):
@@ -644,7 +645,7 @@ def test_store_load_different_address(simulator):
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
-    ] == DataBusValue(1)
+    ] == DataBusValue(np.uint16(1))
 
 
 def test_all_registers(simulator):
@@ -715,6 +716,6 @@ def test_long_program(simulator):
     ] == DataBusValue(0x4E)
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.R1
-    ] == DataBusValue(0x20)
+    ] == DataBusValue(np.int16(0x20))
     cycle_count = simulator.get_state().cycle_count
     print(f"Cycle count: {cycle_count}")  # This will be captured by capsys

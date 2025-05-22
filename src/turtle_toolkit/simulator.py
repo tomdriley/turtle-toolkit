@@ -403,7 +403,7 @@ class Simulator(metaclass=SingletonMeta):
         ) -> int:
             """Get the unsigned value of the address."""
             if hasattr(addr_value_pair[0], "unsigned_value"):
-                return addr_value_pair[0].unsigned_value()
+                return int(addr_value_pair[0].unsigned_value())
             else:
                 raise ValueError(
                     f"Unsupported address type: {type(addr_value_pair[0])}"
@@ -415,11 +415,11 @@ class Simulator(metaclass=SingletonMeta):
                 hex_width = len(value.data) * 2
                 dec_width = len(str(2**INSTRUCTION_WIDTH - 1))
             else:
-                unsigned = value.unsigned_value()
-                hex_width = value._bus_width // 4
-                dec_width = len(str(2**value._bus_width - 1))
+                unsigned = int(value.unsigned_value())
+                hex_width = int(value.BUS_WIDTH // 4)
+                dec_width = len(str(2**value.BUS_WIDTH - 1))
             result.append(
-                f"\t{address.unsigned_value():#0{((address._bus_width // 4)+2)}x}: {unsigned:<{dec_width}} ({unsigned:#0{hex_width+2}x})"
+                f"\t{address.unsigned_value():#0{((address.BUS_WIDTH // 4)+2)}x}: {unsigned:<{dec_width}} ({unsigned:#0{hex_width+2}x})"
             )
 
         return "\n".join(result)
@@ -481,10 +481,9 @@ class Simulator(metaclass=SingletonMeta):
 
         reg_name_max_len = max(len(member.name) for member in RegisterIndex)
 
-        for reg, value in reg_file_state.registers.items():
-            result.append(
-                f"\t{reg.name:{reg_name_max_len}}: {value.unsigned_value():<4}({value.unsigned_value():#0{(value._bus_width // 4) + 2}x})"
-            )
+        for idx, value in enumerate(reg_file_state.registers):
+            reg = RegisterIndex(idx)
+            result.append(f"\t{reg.name:{reg_name_max_len}}: {value:<4}({value:#06x})")
 
         return "\n".join(result)
 

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.common.data_types import (
@@ -19,22 +20,24 @@ def register_file():
 
 def test_initial_state(register_file):
     acc_value = register_file.get_acc_value()
-    assert acc_value == DataBusValue(0)
+    assert acc_value == DataBusValue(np.uint16(0))
     status_register_value = register_file.get_status_register_value()
     assert status_register_value.zero == (acc_value == 0)
-    assert status_register_value.positive == (acc_value.signed_value() >= 0)
+    assert status_register_value.positive == (
+        DataBusValue(acc_value).signed_value() >= 0
+    )
     assert not status_register_value.carry_set
     assert not status_register_value.signed_overflow_set
-    assert register_file.get_dmar_value() == DataBusValue(0)
-    assert register_file.get_imar_value() == DataBusValue(0)
+    assert register_file.get_dmar_value() == DataBusValue(np.uint16(0))
+    assert register_file.get_imar_value() == DataBusValue(np.uint16(0))
     for i in range(8):
         value = register_file.get_register_value(RegisterIndex(i))
-        expected_value = DataBusValue(0)
+        expected_value = DataBusValue(np.uint16(0))
         assert value == expected_value
 
 
 def test_set_and_get_acc_value(register_file):
-    test_value = DataBusValue(123)
+    test_value = DataBusValue(np.uint16(123))
     # In the simulator, acc_next is set, then update_state() is called, then get_acc_value()
     # Replicating that logic here:
     register_file.set_next_acc_value(test_value)
@@ -44,7 +47,7 @@ def test_set_and_get_acc_value(register_file):
 
 def test_set_and_get_register_value(register_file):
     test_register = RegisterIndex(2)
-    test_value = DataBusValue(45)
+    test_value = DataBusValue(np.uint16(45))
     # Similar to accumulator, next value is set, then state updated
     register_file.set_next_register_value(test_register, test_value)
     register_file.update_state()
@@ -52,8 +55,8 @@ def test_set_and_get_register_value(register_file):
 
 
 def test_set_and_get_status_register_value(register_file):
-    test_signed_overflow = True
-    test_carry_flag = False
+    test_signed_overflow = np.True_
+    test_carry_flag = np.False_
     current_status = register_file.get_status_register_value()
     expected_status_value = StatusRegisterValue(
         zero=current_status.zero,
@@ -66,8 +69,8 @@ def test_set_and_get_status_register_value(register_file):
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value
 
-    test_signed_overflow_2 = False
-    test_carry_flag_2 = True
+    test_signed_overflow_2 = np.False_
+    test_carry_flag_2 = np.True_
     expected_status_value_2 = StatusRegisterValue(
         zero=current_status.zero,
         positive=current_status.positive,
@@ -81,8 +84,8 @@ def test_set_and_get_status_register_value(register_file):
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value_2
 
-    test_signed_overflow_3 = True
-    test_carry_flag_3 = True
+    test_signed_overflow_3 = np.True_
+    test_carry_flag_3 = np.True_
     expected_status_value_3 = StatusRegisterValue(
         zero=current_status.zero,
         positive=current_status.positive,
@@ -99,27 +102,27 @@ def test_set_and_get_status_register_value(register_file):
 
 def test_dmar_and_imar_mirror_registers(register_file):
     # DMAR is Register 0, IMAR is Register 1
-    dbar_val = DataBusValue(10)
-    ibar_val = DataBusValue(15)
+    dbar_val = DataBusValue(np.uint16(10))
+    ibar_val = DataBusValue(np.uint16(15))
 
     register_file.set_next_register_value(RegisterIndex.DBAR, dbar_val)
     register_file.update_state()
     register_file.set_next_register_value(RegisterIndex.IBAR, ibar_val)
     register_file.update_state()
 
-    assert register_file.get_dmar_value() == DataAddressBusValue(2560)
-    assert register_file.get_imar_value() == InstructionAddressBusValue(3840)
+    assert register_file.get_dmar_value() == DataAddressBusValue(np.uint16(2560))
+    assert register_file.get_imar_value() == InstructionAddressBusValue(np.uint16(3840))
 
 
 def test_update_state_no_pending_changes(register_file):
     # Set initial values
-    acc_initial = DataBusValue(5)
+    acc_initial = DataBusValue(np.uint16(5))
     register_file.set_next_acc_value(acc_initial)
     register_file.update_state()
     assert register_file.get_acc_value() == acc_initial
 
     reg_idx = RegisterIndex(3)
-    reg_val_initial = DataBusValue(15)
+    reg_val_initial = DataBusValue(np.uint16(15))
     register_file.set_next_register_value(reg_idx, reg_val_initial)
     register_file.update_state()
     assert register_file.get_register_value(reg_idx) == reg_val_initial

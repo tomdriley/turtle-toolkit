@@ -5,6 +5,8 @@ Date: 2025-05-04
 
 from dataclasses import dataclass
 
+import numpy as np
+
 from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 from turtle_toolkit.common.data_types import InstructionAddressBusValue
 from turtle_toolkit.modules.base_memory import BaseMemory
@@ -43,8 +45,8 @@ class InstructionMemory(BaseMemory[InstructionAddressBusValue, InstructionBinary
         for addr in range(0, len(binary), chunk_size):
             chunk = binary[addr : addr + chunk_size]
             if len(chunk) == chunk_size:  # Only store complete instructions
-                self.state.memory[InstructionAddressBusValue(addr)] = InstructionBinary(
-                    chunk
+                self.state.memory[InstructionAddressBusValue(np.uint16(addr))] = (
+                    InstructionBinary(chunk)
                 )
 
     def request_fetch(self, address: InstructionAddressBusValue) -> None:

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from turtle_toolkit.assembler import Assembler, Opcode, RegMemoryFunction
@@ -48,11 +49,15 @@ def test_parse_branch_instructions():
 
     assert instructions[0].conditional_branch
     assert instructions[0].branch_conditon == BranchCondition.ZERO
-    assert instructions[0].address_immediate == InstructionAddressBusValue(0x04)
+    assert instructions[0].address_immediate == InstructionAddressBusValue(
+        np.int16(0x04)
+    )
 
     assert instructions[1].conditional_branch
     assert instructions[1].branch_conditon == BranchCondition.NOT_ZERO
-    assert instructions[1].address_immediate == InstructionAddressBusValue(0x08)
+    assert instructions[1].address_immediate == InstructionAddressBusValue(
+        np.int16(0x08)
+    )
 
     assert instructions[2].conditional_branch
     assert instructions[2].branch_conditon == BranchCondition.POSITIVE
@@ -60,7 +65,9 @@ def test_parse_branch_instructions():
 
     assert instructions[3].conditional_branch
     assert instructions[3].branch_conditon == BranchCondition.NEGATIVE
-    assert instructions[3].address_immediate == InstructionAddressBusValue(0x10)
+    assert instructions[3].address_immediate == InstructionAddressBusValue(
+        np.int16(0x10)
+    )
 
 
 def test_invalid_syntax():
@@ -99,7 +106,7 @@ def test_immediate_values():
 
     assert instructions[1].opcode == Opcode.ARITH_LOGIC_IMM
     assert instructions[1].function == ArithLogicFunction.SUB
-    assert instructions[1].data_immediate == DataBusValue(0b1010)
+    assert instructions[1].data_immediate == DataBusValue(np.int16(0b1010))
 
 
 def test_nop():
@@ -111,7 +118,7 @@ def test_nop():
     assert len(instructions) == 1
     assert instructions[0].opcode == Opcode.ARITH_LOGIC_IMM
     assert instructions[0].function == ArithLogicFunction.ADD
-    assert instructions[0].data_immediate == DataBusValue(0x00)
+    assert instructions[0].data_immediate == DataBusValue(np.int16(0x00))
 
     binary = Assembler.encode_instruction(instructions[0])
     assert binary == INSTRUCTION_NOP
@@ -125,7 +132,7 @@ def test_halt():
 
     assert len(instructions) == 1
     assert instructions[0].opcode == Opcode.JUMP_IMM
-    assert instructions[0].address_immediate == InstructionAddressBusValue(0)
+    assert instructions[0].address_immediate == InstructionAddressBusValue(np.uint16(0))
 
     binary = Assembler.encode_instruction(instructions[0])
     assert binary == INSTRUCTION_HALT
@@ -140,7 +147,7 @@ def test_nop_macro():
     assert len(instructions) == 1
     assert instructions[0].opcode == Opcode.ARITH_LOGIC_IMM
     assert instructions[0].function == ArithLogicFunction.ADD
-    assert instructions[0].data_immediate == DataBusValue(0x00)
+    assert instructions[0].data_immediate == DataBusValue(np.int16(0x00))
 
     binary = Assembler.encode_instruction(instructions[0])
     assert binary == INSTRUCTION_NOP
@@ -154,7 +161,7 @@ def test_halt_macro():
 
     assert len(instructions) == 1
     assert instructions[0].opcode == Opcode.JUMP_IMM
-    assert instructions[0].address_immediate == InstructionAddressBusValue(0)
+    assert instructions[0].address_immediate == InstructionAddressBusValue(np.uint16(0))
 
     binary = Assembler.encode_instruction(instructions[0])
     assert binary == INSTRUCTION_HALT
