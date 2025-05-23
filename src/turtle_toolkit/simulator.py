@@ -75,27 +75,6 @@ class Simulator(metaclass=SingletonMeta):
         self.reset()
         logger.info("Simulator instance created.")
 
-    def initialize_modules(self) -> None:
-        self._state: SimulatorState = SimulatorState()
-        self._alu: ALU = ALU(ALU_NAME)
-        self._decode_unit: DecodeUnit = DecodeUnit(DECODER_NAME)
-        self._instruction_memory: InstructionMemory = InstructionMemory(
-            INSTRUCTION_MEMORY_NAME
-        )
-        self._data_memory: DataMemory = DataMemory(DATA_MEMORY_NAME)
-        self._register_file: RegisterFile = RegisterFile(REGISTER_FILE_NAME)
-        self._program_counter: ProgramCounter = ProgramCounter(PROGRAM_COUNTER_NAME)
-        self._state.modules[self._instruction_memory.name] = (
-            self._instruction_memory.get_state_ref()
-        )
-        self._state.modules[self._data_memory.name] = self._data_memory.get_state_ref()
-        self._state.modules[self._register_file.name] = (
-            self._register_file.get_state_ref()
-        )
-        self._state.modules[self._program_counter.name] = (
-            self._program_counter.get_state_ref()
-        )
-
     def _execute_cycle(self) -> SimulatorState:
         """Execute a single cycle of the simulation."""
         logger.debug(f"Executing cycle {self._state.cycle_count}.")
@@ -491,8 +470,25 @@ class Simulator(metaclass=SingletonMeta):
 
     def reset(self) -> None:
         """Reset the simulator state."""
-        self.initialize_modules()
-        self._state = SimulatorState()
+        self._state: SimulatorState = SimulatorState()
+        self._alu: ALU = ALU(ALU_NAME)
+        self._decode_unit: DecodeUnit = DecodeUnit(DECODER_NAME)
+        self._instruction_memory: InstructionMemory = InstructionMemory(
+            INSTRUCTION_MEMORY_NAME
+        )
+        self._data_memory: DataMemory = DataMemory(DATA_MEMORY_NAME)
+        self._register_file: RegisterFile = RegisterFile(REGISTER_FILE_NAME)
+        self._program_counter: ProgramCounter = ProgramCounter(PROGRAM_COUNTER_NAME)
+        self._state.modules[self._instruction_memory.name] = (
+            self._instruction_memory.get_state_ref()
+        )
+        self._state.modules[self._data_memory.name] = self._data_memory.get_state_ref()
+        self._state.modules[self._register_file.name] = (
+            self._register_file.get_state_ref()
+        )
+        self._state.modules[self._program_counter.name] = (
+            self._program_counter.get_state_ref()
+        )
 
     def load_program(self, program: str) -> None:
         """Load a program into the instruction memory."""

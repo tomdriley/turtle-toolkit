@@ -163,12 +163,14 @@ class Assembler:
         raise SyntaxError(f"Unknown opcode: {opcode}")
 
     @staticmethod
-    def parse_immediate(operand: str) -> np.uint16:
+    def parse_immediate(operand: str) -> np.uint16 | np.int16:
         operand = operand.strip().replace("_", "")
         if operand.startswith("0X"):
             return np.uint16(int(operand, 16))
         elif operand.startswith("0B"):
             return np.uint16(int(operand, 2))
+        elif operand.lstrip("-").isdigit() and operand[0] == "-":
+            return np.int16(int(operand.lstrip("-")))
         elif operand.lstrip("-").isdigit():
             return np.uint16(int(operand))
         raise SyntaxError(f"Invalid immediate: {operand}")
