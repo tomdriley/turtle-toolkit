@@ -69,3 +69,30 @@ def test_instruction_address_bus_value():
 def test_data_address_bus_value():
     value = DataAddressBusValue(np.uint16(512))
     assert value.unsigned_value() == 512
+
+
+def test_data_bus_value_signed_behavior():
+    # Test positive value
+    positive_value = DataBusValue(np.uint16(1))
+    assert positive_value.signed_value() == 1
+    assert not positive_value.is_negative()
+
+    # Test zero value
+    zero_value = DataBusValue(np.uint16(0))
+    assert zero_value.signed_value() == 0
+    assert not zero_value.is_negative()
+
+    # Test maximum positive value
+    max_positive_value = DataBusValue(np.uint16(0x7FFF))
+    assert max_positive_value.signed_value() == 0x7FFF
+    assert not max_positive_value.is_negative()
+
+    # Test negative value
+    negative_value = DataBusValue(np.uint16(0xFFFF))
+    assert negative_value.signed_value() == -1
+    assert negative_value.is_negative()
+
+    # Test minimum negative value
+    min_negative_value = DataBusValue(np.uint16(0x8000))
+    assert min_negative_value.signed_value() == -0x8000
+    assert min_negative_value.is_negative()
