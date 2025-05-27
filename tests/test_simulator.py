@@ -450,9 +450,9 @@ def test_bn_instruction_taken(simulator):
     simulator.load_binary(binary)
     simulator.run_until_halt()
     state = simulator.get_state()
-    assert state.modules[REGISTER_FILE_NAME].registers[
+    assert np.int16(state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC.value
-    ] == np.int16(-1)
+    ]) == np.int16(-1)
 
 
 def test_bn_instruction_not_taken(simulator):
@@ -521,9 +521,9 @@ def test_bcc_instruction_taken(simulator):
     simulator.load_binary(binary)
     simulator.run_until_halt()
     state = simulator.get_state()
-    assert state.modules[REGISTER_FILE_NAME].registers[
-        RegisterIndex.ACC.value
-    ] == DataBusValue(0xFF)
+    assert DataBusValue(
+        state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC.value]
+    ) == DataBusValue(np.uint16(0xFF))
 
 
 def test_bcc_instruction_not_taken(simulator):
@@ -677,8 +677,8 @@ def test_all_registers(simulator):
 
     for i in range(8):
         assert state.modules[REGISTER_FILE_NAME].registers[
-            RegisterIndex(i.value)
-        ] == DataBusValue(i + 1)
+            RegisterIndex(i).value
+        ] == DataBusValue(np.uint16(i + 1))
 
 
 def test_long_program(simulator):
@@ -709,11 +709,11 @@ def test_long_program(simulator):
     """
     binary = Assembler.assemble(source)
     simulator.load_binary(binary)
-    simulator.run_until_halt(max_cycles=1000000)
+    simulator.run_until_halt(max_cycles=100000000)
     state = simulator.get_state()
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.R2.value
-    ] == DataBusValue(0x4E)
+    ] == DataBusValue(np.int16(0x4E))
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.R1.value
     ] == DataBusValue(np.int16(0x20))

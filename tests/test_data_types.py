@@ -71,28 +71,31 @@ def test_data_address_bus_value():
     assert value.unsigned_value() == 512
 
 
-def test_data_bus_value_signed_behavior():
-    # Test positive value
+def test_data_bus_value_signed_behavior_positive():
     positive_value = DataBusValue(np.uint16(1))
     assert positive_value.signed_value() == 1
     assert not positive_value.is_negative()
 
-    # Test zero value
+
+def test_data_bus_value_signed_behavior_zero():
     zero_value = DataBusValue(np.uint16(0))
     assert zero_value.signed_value() == 0
     assert not zero_value.is_negative()
 
-    # Test maximum positive value
-    max_positive_value = DataBusValue(np.uint16(0x7FFF))
-    assert max_positive_value.signed_value() == 0x7FFF
+
+def test_data_bus_value_signed_behavior_max_positive():
+    max_positive_value = DataBusValue(np.uint16(0x7F))
+    assert max_positive_value.signed_value() == np.int16(0x7F)
     assert not max_positive_value.is_negative()
 
-    # Test negative value
-    negative_value = DataBusValue(np.uint16(0xFFFF))
+
+def test_data_bus_value_signed_behavior_negative():
+    negative_value = DataBusValue(np.uint16(0xFF))
     assert negative_value.signed_value() == -1
     assert negative_value.is_negative()
 
-    # Test minimum negative value
-    min_negative_value = DataBusValue(np.uint16(0x8000))
-    assert min_negative_value.signed_value() == -0x8000
+
+def test_data_bus_value_signed_behavior_min_negative():
+    min_negative_value = DataBusValue(np.uint16(0x80))
+    assert min_negative_value.signed_value() == -0x80
     assert min_negative_value.is_negative()

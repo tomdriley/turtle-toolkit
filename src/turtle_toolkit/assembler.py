@@ -170,7 +170,7 @@ class Assembler:
         elif operand.startswith("0B"):
             return np.uint16(int(operand, 2))
         elif operand.lstrip("-").isdigit() and operand[0] == "-":
-            return np.int16(int(operand.lstrip("-")))
+            return np.int16(int(operand))
         elif operand.lstrip("-").isdigit():
             return np.uint16(int(operand))
         raise SyntaxError(f"Invalid immediate: {operand}")
