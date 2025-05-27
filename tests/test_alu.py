@@ -7,11 +7,11 @@ from turtle_toolkit.modules.alu import ALU
 
 
 @pytest.fixture
-def alu():
+def alu() -> ALU:
     return ALU("ALU")
 
 
-def test_alu_addition(alu):
+def test_alu_addition(alu: ALU) -> None:
     operand_a = DataBusValue(np.uint16(5))
     operand_b = DataBusValue(np.uint16(10))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.ADD)
@@ -21,7 +21,7 @@ def test_alu_addition(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_addition_with_zero(alu):
+def test_alu_addition_with_zero(alu: ALU) -> None:
     operand_a = DataBusValue(np.uint16(0))
     operand_b = DataBusValue(np.uint16(10))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.ADD)
@@ -31,7 +31,7 @@ def test_alu_addition_with_zero(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_addition_with_negative(alu):
+def test_alu_addition_with_negative(alu: ALU) -> None:
     operand_a = DataBusValue(np.int16(-5))
     operand_b = DataBusValue(np.uint16(10))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.ADD)
@@ -41,7 +41,7 @@ def test_alu_addition_with_negative(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_subtraction(alu):
+def test_alu_subtraction(alu: ALU) -> None:
     operand_a = DataBusValue(np.uint16(10))
     operand_b = DataBusValue(np.uint16(5))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
@@ -51,7 +51,7 @@ def test_alu_subtraction(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_subtraction_with_zero(alu):
+def test_alu_subtraction_with_zero(alu: ALU) -> None:
     operand_a = DataBusValue(np.uint16(10))
     operand_b = DataBusValue(np.uint16(0))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
@@ -61,7 +61,7 @@ def test_alu_subtraction_with_zero(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_subtraction_with_negative(alu):
+def test_alu_subtraction_with_negative(alu: ALU) -> None:
     operand_a = DataBusValue(np.int16(-5))
     operand_b = DataBusValue(np.uint16(10))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
@@ -71,7 +71,7 @@ def test_alu_subtraction_with_negative(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_subtraction_negative(alu):
+def test_alu_subtraction_negative(alu: ALU) -> None:
     operand_a = DataBusValue(np.uint16(5))
     operand_b = DataBusValue(np.uint16(10))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
@@ -81,7 +81,7 @@ def test_alu_subtraction_negative(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_addition_with_overflow(alu):
+def test_alu_addition_with_overflow(alu: ALU) -> None:
     # Max positive value for signed integer
     operand_a = DataBusValue(DataBusValue.MAX_SIGNED_VALUE)
     operand_b = DataBusValue(np.uint16(1))
@@ -92,7 +92,7 @@ def test_alu_addition_with_overflow(alu):
     assert outputs.signed_overflow
 
 
-def test_alu_subtraction_with_underflow(alu):
+def test_alu_subtraction_with_underflow(alu: ALU) -> None:
     operand_a = DataBusValue(DataBusValue.MIN_SIGNED_VALUE)
     operand_b = DataBusValue(np.uint16(1))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
@@ -102,7 +102,7 @@ def test_alu_subtraction_with_underflow(alu):
     assert outputs.signed_overflow
 
 
-def test_alu_addition_with_carry(alu):
+def test_alu_addition_with_carry(alu: ALU) -> None:
     # Max unsigned value
     operand_a = DataBusValue(DataBusValue.MAX_UNSIGNED_VALUE)
     operand_b = DataBusValue(np.uint16(1))
@@ -113,7 +113,7 @@ def test_alu_addition_with_carry(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_and_operation(alu):
+def test_alu_and_operation(alu: ALU) -> None:
     operand_a = DataBusValue(np.int16(0b1100))
     operand_b = DataBusValue(np.int16(0b1010))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.AND)
@@ -123,7 +123,7 @@ def test_alu_and_operation(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_or_operation(alu):
+def test_alu_or_operation(alu: ALU) -> None:
     operand_a = DataBusValue(np.int16(0b1100))
     operand_b = DataBusValue(np.int16(0b1010))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.OR)
@@ -133,7 +133,7 @@ def test_alu_or_operation(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_xor_operation(alu):
+def test_alu_xor_operation(alu: ALU) -> None:
     operand_a = DataBusValue(np.int16(0b1100))
     operand_b = DataBusValue(np.int16(0b1010))
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.XOR)
@@ -143,7 +143,7 @@ def test_alu_xor_operation(alu):
     assert not outputs.signed_overflow
 
 
-def test_alu_invert_operation(alu):
+def test_alu_invert_operation(alu: ALU) -> None:
     operand_a = DataBusValue(np.int16(0b1100))
     outputs = alu.execute(operand_a, DataBusValue(np.uint16(0)), ArithLogicFunction.INV)
 

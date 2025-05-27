@@ -10,7 +10,7 @@ from turtle_toolkit.modules.decoder import BranchCondition
 from .binary_macros import INSTRUCTION_HALT, INSTRUCTION_NOP
 
 
-def test_parse_assembly():
+def test_parse_assembly() -> None:
     source = """
     START: ADD R0
     SUBI 0x10
@@ -36,7 +36,7 @@ def test_parse_assembly():
     assert instructions[3].function == ArithLogicFunction.INV
 
 
-def test_parse_branch_instructions():
+def test_parse_branch_instructions() -> None:
     source = """
     BZ 0x04
     BNZ 0x08
@@ -70,12 +70,12 @@ def test_parse_branch_instructions():
     )
 
 
-def test_invalid_syntax():
+def test_invalid_syntax() -> None:
     with pytest.raises(SyntaxError):
         Assembler.parse_assembly("INVALID INSTRUCTION")
 
 
-def test_memory_instructions():
+def test_memory_instructions() -> None:
     source = """
     LOAD
     STORE
@@ -91,7 +91,7 @@ def test_memory_instructions():
     assert instructions[1].function == RegMemoryFunction.STORE
 
 
-def test_immediate_values():
+def test_immediate_values() -> None:
     source = """
     ADDI 0xFF
     SUBI 0b1010
@@ -109,7 +109,7 @@ def test_immediate_values():
     assert instructions[1].data_immediate == DataBusValue(np.int16(0b1010))
 
 
-def test_nop():
+def test_nop() -> None:
     source = """
     ADDI 0
     """
@@ -124,7 +124,7 @@ def test_nop():
     assert binary == INSTRUCTION_NOP
 
 
-def test_halt():
+def test_halt() -> None:
     source = """
     JMPI 0
     """
@@ -138,7 +138,7 @@ def test_halt():
     assert binary == INSTRUCTION_HALT
 
 
-def test_nop_macro():
+def test_nop_macro() -> None:
     source = """
     NOP
     """
@@ -153,7 +153,7 @@ def test_nop_macro():
     assert binary == INSTRUCTION_NOP
 
 
-def test_halt_macro():
+def test_halt_macro() -> None:
     source = """
     HALT
     """

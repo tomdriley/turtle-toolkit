@@ -53,3 +53,5 @@ force_grid_wrap = 0
 use_parentheses = true
 known_first_party = ["turtle_toolkit"]
 
+[tool.mypy]
+strict = true

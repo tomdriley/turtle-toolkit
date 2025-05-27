@@ -8,21 +8,21 @@ from turtle_toolkit.modules.register_file import StatusRegisterValue
 
 
 @pytest.fixture
-def program_counter():
+def program_counter() -> ProgramCounter:
     return ProgramCounter("TestPC")
 
 
-def test_initialization(program_counter):
+def test_initialization(program_counter: ProgramCounter) -> None:
     assert program_counter.get_current_instruction_address() == 0
 
 
-def test_increment(program_counter):
+def test_increment(program_counter: ProgramCounter) -> None:
     program_counter.increment()
     program_counter.update_state()
     assert program_counter.get_current_instruction_address() == 2
 
 
-def test_jump_relative(program_counter):
+def test_jump_relative(program_counter: ProgramCounter) -> None:
     # Test positive offset
     program_counter.jump_relative(InstructionAddressBusValue(np.uint16(6)))
     program_counter.update_state()
@@ -34,13 +34,13 @@ def test_jump_relative(program_counter):
     assert program_counter.get_current_instruction_address() == 2
 
 
-def test_jump_absolute(program_counter):
+def test_jump_absolute(program_counter: ProgramCounter) -> None:
     program_counter.jump_absolute(InstructionAddressBusValue(np.uint16(100)))
     program_counter.update_state()
     assert program_counter.get_current_instruction_address() == 100
 
 
-def test_conditional_branch_zero_flag():
+def test_conditional_branch_zero_flag() -> None:
     # Test branch when zero flag is set
     pc = ProgramCounter("TestPC")
     status_reg = StatusRegisterValue(
@@ -64,7 +64,7 @@ def test_conditional_branch_zero_flag():
     assert pc.get_current_instruction_address() == 2  # Should increment instead
 
 
-def test_conditional_branch_positive_flag():
+def test_conditional_branch_positive_flag() -> None:
     # Test branch when positive flag is set
     pc = ProgramCounter("TestPC")
     status_reg = StatusRegisterValue(
@@ -88,7 +88,7 @@ def test_conditional_branch_positive_flag():
     assert pc.get_current_instruction_address() == 2  # Should increment instead
 
 
-def test_conditional_branch_carry_flag():
+def test_conditional_branch_carry_flag() -> None:
     # Test branch when carry flag is set
     pc = ProgramCounter("TestPC")
     status_reg = StatusRegisterValue(
@@ -112,7 +112,7 @@ def test_conditional_branch_carry_flag():
     assert pc.get_current_instruction_address() == 2  # Should increment instead
 
 
-def test_conditional_branch_overflow_flag():
+def test_conditional_branch_overflow_flag() -> None:
     # Test branch when overflow flag is set
     pc = ProgramCounter("TestPC")
     status_reg = StatusRegisterValue(
@@ -140,7 +140,7 @@ def test_conditional_branch_overflow_flag():
     assert pc.get_current_instruction_address() == 2  # Should increment instead
 
 
-def test_update_state_without_next_value():
+def test_update_state_without_next_value() -> None:
     pc = ProgramCounter("TestPC")
     with pytest.raises(ValueError, match="No next value set for program counter"):
         pc.update_state()

@@ -7,7 +7,7 @@ from turtle_toolkit.modules.program_counter import ProgramCounter
 from turtle_toolkit.modules.register_file import StatusRegisterValue
 
 
-def test_branch_negative_condition():
+def test_branch_negative_condition() -> None:
     """Test the BN (Branch if Negative) condition."""
     pc = ProgramCounter("TestPC")
 
@@ -26,7 +26,7 @@ def test_branch_negative_condition():
     assert pc.state.next_value == pc.state.value + offset
 
 
-def test_branch_positive_condition():
+def test_branch_positive_condition() -> None:
     """Test the BP (Branch if Positive) condition."""
     pc = ProgramCounter("TestPC")
 
@@ -45,7 +45,7 @@ def test_branch_positive_condition():
     assert pc.state.next_value == pc.state.value + offset
 
 
-def test_branch_zero_condition():
+def test_branch_zero_condition() -> None:
     """Test the BZ (Branch if Zero) condition."""
     pc = ProgramCounter("TestPC")
 

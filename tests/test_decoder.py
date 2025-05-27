@@ -10,25 +10,25 @@ from .binary_macros import INSTRUCTION_HALT, INSTRUCTION_NOP
 
 
 @pytest.fixture
-def decoder():
+def decoder() -> DecodeUnit:
     return DecodeUnit("test_decoder")
 
 
-def test_decode_nop_instruction(decoder):
+def test_decode_nop_instruction(decoder: DecodeUnit) -> None:
     # Example binary for NOP instruction
     binary_data = InstructionBinary(INSTRUCTION_NOP)
     decoded = decoder.decode(binary_data)
     assert not decoded.halt_instruction
 
 
-def test_decode_halt_instruction(decoder):
+def test_decode_halt_instruction(decoder: DecodeUnit) -> None:
     # Example binary for HALT instruction
     binary_data = InstructionBinary(INSTRUCTION_HALT)
     decoded = decoder.decode(binary_data)
     assert decoded.halt_instruction
 
 
-def test_decode_alu_instruction(decoder):
+def test_decode_alu_instruction(decoder: DecodeUnit) -> None:
     # Example binary for ALU ADD instruction
     binary_data = InstructionBinary(Assembler.assemble("ADD R0"))
     decoded = decoder.decode(binary_data)
@@ -36,7 +36,7 @@ def test_decode_alu_instruction(decoder):
     assert decoded.alu_function == ArithLogicFunction.ADD
 
 
-def test_decode_branch_instruction(decoder):
+def test_decode_branch_instruction(decoder: DecodeUnit) -> None:
     # Example binary for branch instruction with ZERO condition
     binary_data = InstructionBinary(Assembler.assemble("BZ 0x04"))
     decoded = decoder.decode(binary_data)

@@ -17,14 +17,14 @@ from turtle_toolkit.simulator import (
 
 
 @pytest.fixture
-def simulator():
+def simulator() -> Simulator:
     """Provides a fresh simulator instance for each test."""
     sim = Simulator()
     sim.reset()
     return sim
 
 
-def test_initial_state(simulator):
+def test_initial_state(simulator: Simulator) -> None:
     # Test the initial state of the simulator
     state = simulator.get_state()
     assert state.cycle_count == 0
@@ -35,7 +35,7 @@ def test_initial_state(simulator):
     assert state.modules[PROGRAM_COUNTER_NAME].value == 0
 
 
-def test_tick(simulator):
+def test_tick(simulator: Simulator) -> None:
     # Test the tick method increments the cycle count
     source = """
     NOP
@@ -52,7 +52,7 @@ def test_tick(simulator):
     assert simulator.get_state().cycle_count == final_cycle_count
 
 
-def test_reset(simulator):
+def test_reset(simulator: Simulator) -> None:
     # Test resetting the simulator
     simulator.reset()
     state = simulator.get_state()
@@ -64,7 +64,7 @@ def test_reset(simulator):
     assert state.modules[PROGRAM_COUNTER_NAME].value == 0
 
 
-def test_set(simulator):
+def test_set(simulator: Simulator) -> None:
     # Test the set instruction
     source = """
     SET 1
@@ -79,7 +79,7 @@ def test_set(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_load_program(simulator):
+def test_load_program(simulator: Simulator) -> None:
     # Test loading a program without assembling first
     source = """
     SET 1
@@ -93,7 +93,7 @@ def test_load_program(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_addi_instruction(simulator):
+def test_addi_instruction(simulator: Simulator) -> None:
     # Test the ADD instruction
     source = """
     SET 1
@@ -109,7 +109,7 @@ def test_addi_instruction(simulator):
     ] == DataBusValue(np.uint16(3))
 
 
-def test_put_instruction(simulator):
+def test_put_instruction(simulator: Simulator) -> None:
     # Test the PUT instruction
     source = """
     SET 1
@@ -125,7 +125,7 @@ def test_put_instruction(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_get_instruction(simulator):
+def test_get_instruction(simulator: Simulator) -> None:
     # Test the GET instruction
     source = """
     SET 1
@@ -143,7 +143,7 @@ def test_get_instruction(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_add_instruction(simulator):
+def test_add_instruction(simulator: Simulator) -> None:
     # Test the ADD instruction
     source = """
     SET 1
@@ -161,7 +161,7 @@ def test_add_instruction(simulator):
     ] == DataBusValue(np.uint16(3))
 
 
-def test_sub_instruction(simulator):
+def test_sub_instruction(simulator: Simulator) -> None:
     # Test the SUB instruction
     source = """
     SET 3
@@ -179,7 +179,7 @@ def test_sub_instruction(simulator):
     ] == DataBusValue(np.uint16(2))
 
 
-def test_and_instruction(simulator):
+def test_and_instruction(simulator: Simulator) -> None:
     # Test the AND instruction
     source = """
     SET 6  ; 0b0110
@@ -199,7 +199,7 @@ def test_and_instruction(simulator):
     )  # 0b0100
 
 
-def test_or_instruction(simulator):
+def test_or_instruction(simulator: Simulator) -> None:
     # Test the OR instruction
     source = """
     SET 2  ; 0b0010
@@ -219,7 +219,7 @@ def test_or_instruction(simulator):
     )  # 0b0110
 
 
-def test_xor_instruction(simulator):
+def test_xor_instruction(simulator: Simulator) -> None:
     # Test the XOR instruction
     source = """
     SET 6  ; 0b0110
@@ -239,7 +239,7 @@ def test_xor_instruction(simulator):
     )  # 0b0101
 
 
-def test_inv_instruction(simulator):
+def test_inv_instruction(simulator: Simulator) -> None:
     # Test the INV instruction
     source = """
     SET 0b00001111
@@ -255,7 +255,7 @@ def test_inv_instruction(simulator):
     ).unsigned_value() == np.int16(0b11110000)
 
 
-def test_subi_instruction(simulator):
+def test_subi_instruction(simulator: Simulator) -> None:
     # Test the SUBI instruction
     source = """
     SET 5
@@ -271,7 +271,7 @@ def test_subi_instruction(simulator):
     ] == DataBusValue(np.uint16(3))
 
 
-def test_andi_instruction(simulator):
+def test_andi_instruction(simulator: Simulator) -> None:
     # Test the ANDI instruction
     source = """
     SET 0b0110
@@ -287,7 +287,7 @@ def test_andi_instruction(simulator):
     ] == DataBusValue(np.int16(0b0100))
 
 
-def test_ori_instruction(simulator):
+def test_ori_instruction(simulator: Simulator) -> None:
     # Test the ORI instruction
     source = """
     SET 0b0010
@@ -303,7 +303,7 @@ def test_ori_instruction(simulator):
     ] == DataBusValue(np.int16(0b0110))
 
 
-def test_xori_instruction(simulator):
+def test_xori_instruction(simulator: Simulator) -> None:
     # Test the XORI instruction
     source = """
     SET 0b0110
@@ -319,7 +319,7 @@ def test_xori_instruction(simulator):
     ] == DataBusValue(np.int16(0b0101))
 
 
-def test_jmpi_instruction(simulator):
+def test_jmpi_instruction(simulator: Simulator) -> None:
     # Test the JMPI instruction
     source = """
     SET 0
@@ -336,7 +336,7 @@ def test_jmpi_instruction(simulator):
     ] == DataBusValue(np.uint16(0))
 
 
-def test_bz_instruction_taken(simulator):
+def test_bz_instruction_taken(simulator: Simulator) -> None:
     # Test the BZ instruction
     source = """
     SET 0
@@ -353,7 +353,7 @@ def test_bz_instruction_taken(simulator):
     ] == DataBusValue(np.uint16(0))
 
 
-def test_bz_instruction_not_taken(simulator):
+def test_bz_instruction_not_taken(simulator: Simulator) -> None:
     # Test the BZ instruction
     source = """
     SET 1
@@ -370,7 +370,7 @@ def test_bz_instruction_not_taken(simulator):
     ] == DataBusValue(np.uint16(0))
 
 
-def test_bnz_instruction_taken(simulator):
+def test_bnz_instruction_taken(simulator: Simulator) -> None:
     # Test the BNZ instruction
     source = """
     SET 1
@@ -387,7 +387,7 @@ def test_bnz_instruction_taken(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_bnz_instruction_not_taken(simulator):
+def test_bnz_instruction_not_taken(simulator: Simulator) -> None:
     # Test the BNZ instruction
     source = """
     SET 0
@@ -404,7 +404,7 @@ def test_bnz_instruction_not_taken(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_bp_instruction_taken(simulator):
+def test_bp_instruction_taken(simulator: Simulator) -> None:
     # Test the BP instruction
     source = """
     SET 1
@@ -421,7 +421,7 @@ def test_bp_instruction_taken(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_bp_instruction_not_taken(simulator):
+def test_bp_instruction_not_taken(simulator: Simulator) -> None:
     # Test the BP instruction
     source = """
     SET -1
@@ -438,7 +438,7 @@ def test_bp_instruction_not_taken(simulator):
     ] == np.uint16(1)
 
 
-def test_bn_instruction_taken(simulator):
+def test_bn_instruction_taken(simulator: Simulator) -> None:
     # Test the BN instruction
     source = """
     SET -1
@@ -450,12 +450,12 @@ def test_bn_instruction_taken(simulator):
     simulator.load_binary(binary)
     simulator.run_until_halt()
     state = simulator.get_state()
-    assert np.int16(state.modules[REGISTER_FILE_NAME].registers[
-        RegisterIndex.ACC.value
-    ]) == np.int16(-1)
+    assert np.int16(
+        state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC.value]
+    ) == np.int16(-1)
 
 
-def test_bn_instruction_not_taken(simulator):
+def test_bn_instruction_not_taken(simulator: Simulator) -> None:
     # Test the BN instruction
     source = """
     SET 1
@@ -472,7 +472,7 @@ def test_bn_instruction_not_taken(simulator):
     ] == DataBusValue(np.uint16(0))
 
 
-def test_bcs_instruction_taken(simulator):
+def test_bcs_instruction_taken(simulator: Simulator) -> None:
     # Test the Brabch if Carry Set (BCS) instruction
     source = """
     SET 0xFF
@@ -490,7 +490,7 @@ def test_bcs_instruction_taken(simulator):
     ] == DataBusValue(np.uint16(5))
 
 
-def test_bcs_instruction_not_taken(simulator):
+def test_bcs_instruction_not_taken(simulator: Simulator) -> None:
     # Test the Branch if Carry Set (BCS) instruction
     source = """
     SET 0xFE
@@ -508,7 +508,7 @@ def test_bcs_instruction_not_taken(simulator):
     ] == DataBusValue(np.uint16(0))
 
 
-def test_bcc_instruction_taken(simulator):
+def test_bcc_instruction_taken(simulator: Simulator) -> None:
     # Test the Branch if Carry Clear (BCC) instruction
     source = """
     SET 0xFE
@@ -526,7 +526,7 @@ def test_bcc_instruction_taken(simulator):
     ) == DataBusValue(np.uint16(0xFF))
 
 
-def test_bcc_instruction_not_taken(simulator):
+def test_bcc_instruction_not_taken(simulator: Simulator) -> None:
     # Test the Branch if Carry Clear (BCC) instruction
     source = """
     SET 0xFF
@@ -544,7 +544,7 @@ def test_bcc_instruction_not_taken(simulator):
     ] == DataBusValue(np.uint16(0))
 
 
-def test_watchdog_timer(simulator):
+def test_watchdog_timer(simulator: Simulator) -> None:
     # Test that the watchdog timer works by creating an infinite loop
     source = """
     ; An infinite loop that never halts
@@ -566,7 +566,7 @@ def test_watchdog_timer(simulator):
     assert excinfo.value.cycle_count == max_cycles
 
 
-def test_store_instruction(simulator):
+def test_store_instruction(simulator: Simulator) -> None:
     # Test the STORE instruction
     source = """
     SET 1
@@ -582,7 +582,7 @@ def test_store_instruction(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_load_instruction(simulator):
+def test_load_instruction(simulator: Simulator) -> None:
     # Test the LOAD instruction
     source = """
     SET 1
@@ -600,7 +600,7 @@ def test_load_instruction(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_store_different_address(simulator):
+def test_store_different_address(simulator: Simulator) -> None:
     # Test the STORE instruction with a different address
     source = """
     SET 1
@@ -624,7 +624,7 @@ def test_store_different_address(simulator):
     ] == DataBusValue(0x0A)
 
 
-def test_store_load_different_address(simulator):
+def test_store_load_different_address(simulator: Simulator) -> None:
     # Test the STORE and LOAD instructions with different addresses
     source = """
     SET 1
@@ -648,7 +648,7 @@ def test_store_load_different_address(simulator):
     ] == DataBusValue(np.uint16(1))
 
 
-def test_all_registers(simulator):
+def test_all_registers(simulator: Simulator) -> None:
     # Test the initial state of all registers
     source = """
     SET 1
@@ -681,7 +681,7 @@ def test_all_registers(simulator):
         ] == DataBusValue(np.uint16(i + 1))
 
 
-def test_long_program(simulator):
+def test_long_program(simulator: Simulator) -> None:
     # Test a long program that runs for many cycles
     source = """
         SET 0
