@@ -81,10 +81,9 @@ def parse_args() -> argparse.Namespace:
     simulate_parser.add_argument(
         "-f",
         "--format",
-        type=lambda x: AssemblerFormats(x),
         choices=[f.value for f in AssemblerFormats],
         help="Input format. 'bin' (for binary), 'binstr' (for binary string), or 'hexstr' (for hex string). Default is 'bin'.",
-        default=AssemblerFormats.BIN,
+        default="bin",
     )
     simulate_parser.add_argument(
         "-m",

@@ -329,13 +329,13 @@ def main() -> None:
 
     elif args.command == "simulate":
         # Determine input format and read accordingly
-        if args.format == AssemblerFormats.BINARY_STRING:
+        if args.format == "binstr":
             binary = read_binary_string_file(args.input_file)
-        elif args.format == AssemblerFormats.HEX_STRING:
+        elif args.format == "hexstr":
             # TODO: Implement hex string reading when needed
             logger.error("Hex string format not yet implemented for simulation input")
             sys.exit(1)
-        else:  # AssemblerFormats.BIN
+        else:  # "bin"
             binary = read_binary_file(args.input_file, args.allow_non_bin_ext)
         simulate_binary(
             binary,
