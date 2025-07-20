@@ -53,68 +53,76 @@ def read_binary_file(file_path: str, allow_non_bin_ext: bool = False) -> bytes:
 
 def read_binary_string_file(file_path: str) -> bytes:
     """Read binary data from a binary string format file (.binstr.txt).
-    
+
     Args:
         file_path: Path to the binary string file
-        
+
     Returns:
         Binary data parsed from the file
-        
+
     The format expected is any text file containing binary digits (0 and 1).
     Comments (// to end of line) and all whitespace are ignored.
     """
     if not (file_path.endswith(".binstr.txt") or file_path.endswith(".binstr")):
         logger.warning(f"File {file_path} does not have expected .binstr.txt extension")
-    
+
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             content = file.read()
     except IOError as e:
         logger.error(f"Error reading binary string file {file_path}: {e}")
         sys.exit(1)
-        
+
     # Remove all comments (// to end of line)
-    lines = content.split('\n')
+    lines = content.split("\n")
     cleaned_lines = []
     for line in lines:
         # Remove everything after // (including //)
-        if '//' in line:
-            line = line[:line.index('//')]
+        if "//" in line:
+            line = line[: line.index("//")]
         cleaned_lines.append(line)
-    
+
     # Join all lines and remove all whitespace
-    binary_text = ''.join(cleaned_lines)
-    binary_text = ''.join(binary_text.split())  # Remove all whitespace
-    
+    binary_text = "".join(cleaned_lines)
+    binary_text = "".join(binary_text.split())  # Remove all whitespace
+
     # Validate that we only have binary digits
-    if not all(c in '01' for c in binary_text):
-        invalid_chars = set(c for c in binary_text if c not in '01')
-        logger.error(f"Invalid characters in binary string: {invalid_chars}. Only '0' and '1' are allowed.")
+    if not all(c in "01" for c in binary_text):
+        invalid_chars = set(c for c in binary_text if c not in "01")
+        logger.error(
+            f"Invalid characters in binary string: {invalid_chars}. Only '0' and '1' are allowed."
+        )
         sys.exit(1)
-    
+
     if len(binary_text) == 0:
         logger.error(f"No binary data found in file {file_path}")
         sys.exit(1)
-        
+
     # Ensure we have complete instructions (multiple of 8 bits)
     if len(binary_text) % 8 != 0:
         padding_needed = 8 - (len(binary_text) % 8)
-        logger.warning(f"Binary string length ({len(binary_text)}) is not a multiple of 8. Adding {padding_needed} zero bits for padding.")
-        binary_text += '0' * padding_needed
-        
+        logger.warning(
+            f"Binary string length ({len(binary_text)}) is not a multiple of 8. Adding {padding_needed} zero bits for padding."
+        )
+        binary_text += "0" * padding_needed
+
     # Convert binary string to bytes
     binary_data = bytearray()
     for i in range(0, len(binary_text), 8):
-        byte_str = binary_text[i:i+8]
+        byte_str = binary_text[i : i + 8]
         byte_value = int(byte_str, 2)
         binary_data.append(byte_value)
-    
+
     # Ensure we have complete instructions (even number of bytes)
     if len(binary_data) % 2 != 0:
-        logger.warning(f"Binary data length ({len(binary_data)}) is odd. Adding padding byte.")
+        logger.warning(
+            f"Binary data length ({len(binary_data)}) is odd. Adding padding byte."
+        )
         binary_data.append(0)
-        
-    logger.info(f"Parsed {len(binary_data)} bytes ({len(binary_data)//2} instructions) from binary string file")
+
+    logger.info(
+        f"Parsed {len(binary_data)} bytes ({len(binary_data)//2} instructions) from binary string file"
+    )
     return bytes(binary_data)
 
 
