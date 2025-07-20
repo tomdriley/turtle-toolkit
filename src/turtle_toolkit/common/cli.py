@@ -77,18 +77,26 @@ def parse_args() -> argparse.Namespace:
 
     # Simulator command
     simulate_parser = subparsers.add_parser("simulate", help="Simulate binary code")
-    simulate_parser.add_argument("input_file", type=str, help="Binary file to simulate")
+    simulate_parser.add_argument("input_file", type=str, help="File to simulate")
+    simulate_parser.add_argument(
+        "-f",
+        "--format",
+        type=lambda x: AssemblerFormats(x),
+        choices=list(AssemblerFormats),
+        help="Input format. 'bin' (for binary), 'binstr' (for binary string), or 'hexstr' (for hex string). Default is 'bin'.",
+        default=AssemblerFormats.BIN,
+    )
     simulate_parser.add_argument(
         "-m",
         "--max-cycles",
         type=int,
-        default=10000,
-        help="Maximum number of cycles to simulate (default: 10000)",
+        default=None,
+        help="Maximum number of cycles to simulate as a watchdog timer (default: no limit - run until HALT)",
     )
     simulate_parser.add_argument(
         "--allow-non-bin-ext",
         action="store_true",
-        help="Allow non-.bin file extensions for binary files",
+        help="Allow non-.bin file extensions for binary files (deprecated - use --format instead)",
     )
     simulate_parser.add_argument(
         "--dump-memory",
@@ -118,8 +126,8 @@ def parse_args() -> argparse.Namespace:
         "-m",
         "--max-cycles",
         type=int,
-        default=100000,
-        help="Maximum number of cycles to simulate (default: 100000)",
+        default=None,
+        help="Maximum number of cycles to simulate as a watchdog timer (default: no limit - run until HALT)",
     )
     combined_parser.add_argument(
         "--dump-memory",
