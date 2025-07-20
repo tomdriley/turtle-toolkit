@@ -90,6 +90,21 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Allow non-.bin file extensions for binary files",
     )
+    simulate_parser.add_argument(
+        "--dump-memory",
+        type=str,
+        help="Dump final data memory state to file (binary string format with comments)",
+    )
+    simulate_parser.add_argument(
+        "--dump-memory-full",
+        action="store_true",
+        help="When dumping memory, include entire address space with zeros for unwritten locations",
+    )
+    simulate_parser.add_argument(
+        "--dump-registers",
+        type=str,
+        help="Dump final register file state to file (binary string format with comments)",
+    )
 
     # Combined command (assemble and simulate)
     combined_parser = subparsers.add_parser(
@@ -105,6 +120,21 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=100000,
         help="Maximum number of cycles to simulate (default: 100000)",
+    )
+    combined_parser.add_argument(
+        "--dump-memory",
+        type=str,
+        help="Dump final data memory state to file (binary string format with comments)",
+    )
+    combined_parser.add_argument(
+        "--dump-memory-full",
+        action="store_true",
+        help="When dumping memory, include entire address space with zeros for unwritten locations",
+    )
+    combined_parser.add_argument(
+        "--dump-registers",
+        type=str,
+        help="Dump final register file state to file (binary string format with comments)",
     )
 
     return parser.parse_args()

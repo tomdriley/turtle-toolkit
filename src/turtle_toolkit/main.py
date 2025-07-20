@@ -131,7 +131,13 @@ def assemble_file(
         sys.exit(1)
 
 
-def simulate_binary(binary: bytes, max_cycles: int = 10000) -> None:
+def simulate_binary(
+    binary: bytes,
+    max_cycles: int = 10000,
+    dump_memory: Optional[str] = None,
+    dump_registers: Optional[str] = None,
+    dump_memory_full: bool = False,
+) -> None:
     """Simulate the binary code."""
     logger.info(f"Simulating binary code ({len(binary)//2} instructions)")
 
@@ -150,6 +156,25 @@ def simulate_binary(binary: bytes, max_cycles: int = 10000) -> None:
     # Print a nicely formatted state summary
     print("\n" + simulator.format_simulator_state())
 
+    # Dump state to files if requested
+    if dump_memory:
+        try:
+            memory_content = simulator.get_data_memory_dump(dump_memory_full)
+            write_text_file(dump_memory, memory_content)
+            print(f"\nData memory state dumped to: {dump_memory}")
+            if dump_memory_full:
+                print("  (Full memory space included)")
+        except Exception as e:
+            logger.error(f"Failed to dump data memory state: {e}")
+
+    if dump_registers:
+        try:
+            register_content = simulator.get_register_file_dump()
+            write_text_file(dump_registers, register_content)
+            print(f"Register file state dumped to: {dump_registers}")
+        except Exception as e:
+            logger.error(f"Failed to dump register file state: {e}")
+
 
 def main() -> None:
     """Main entry point for the application."""
@@ -166,9 +191,21 @@ def main() -> None:
 
     elif args.command == "simulate":
         binary = read_binary_file(args.input_file, args.allow_non_bin_ext)
-        simulate_binary(binary, args.max_cycles)
+        simulate_binary(
+            binary,
+            args.max_cycles,
+            args.dump_memory,
+            args.dump_registers,
+            args.dump_memory_full,
+        )
 
     elif args.command == "run":
         # Assemble and then simulate
         binary = assemble_file(args.input_file, args.output)
-        simulate_binary(binary, args.max_cycles)
+        simulate_binary(
+            binary,
+            args.max_cycles,
+            args.dump_memory,
+            args.dump_registers,
+            args.dump_memory_full,
+        )

@@ -507,3 +507,123 @@ class Simulator(metaclass=SingletonMeta):
         logger.debug("Loading binary data into instruction memory.")
         self._instruction_memory.side_load(binary)
         logger.info("Binary data loaded into instruction memory.")
+
+    def get_data_memory_dump(self, dump_full_memory: bool = False) -> str:
+        """Get the current data memory state as a binary string format.
+
+        Args:
+            dump_full_memory: If True, dumps entire memory space (0 to max address).
+                             If False, dumps contiguous range from min to max written address.
+        
+        Returns:
+            String containing the formatted memory dump.
+        """
+        logger.debug("Getting data memory state dump")
+
+        data_mem_state = self._state.modules.get(DATA_MEMORY_NAME, None)
+        if data_mem_state is None or not isinstance(data_mem_state, BaseMemoryState):
+            raise RuntimeError("DataMemory state not found or invalid")
+
+        # Create binary string format output
+        lines = ["// Final data memory contents"]
+
+        if len(data_mem_state.memory) == 0:
+            if dump_full_memory:
+                lines.append("// Memory is empty - showing full address space")
+                # Get the data bus width to determine memory size
+                # Assume 8-bit data width and typical address space
+                max_address = 255  # 2^8 - 1 for 8-bit addressing
+                for address in range(max_address + 1):
+                    lines.append(f"{'0' * 8} // Address 0x{address:04x}")
+            else:
+                lines.append("// Memory is empty")
+        else:
+            # Get the range of addresses to dump
+            written_addresses = [
+                addr.unsigned_value() for addr in data_mem_state.memory.keys()
+            ]
+            min_addr = min(written_addresses)
+            max_addr = max(written_addresses)
+
+            if dump_full_memory:
+                # Dump entire memory space from 0 to maximum possible address
+                # For data memory, assume full address space based on address bus width
+                first_addr = list(data_mem_state.memory.keys())[0]
+                max_possible_addr = (1 << first_addr._bus_width) - 1
+                dump_range = range(0, max_possible_addr + 1)
+                lines.append(
+                    f"// Dumping full memory space: 0x0000 to 0x{max_possible_addr:04x}"
+                )
+            else:
+                # Dump contiguous range from min to max written address
+                dump_range = range(min_addr, max_addr + 1)
+                lines.append(
+                    f"// Dumping contiguous range: 0x{min_addr:04x} to 0x{max_addr:04x}"
+                )
+
+            # Create a lookup for written memory locations
+            memory_lookup = {
+                addr.unsigned_value(): value
+                for addr, value in data_mem_state.memory.items()
+            }
+
+            # Generate contiguous memory dump
+            for address in dump_range:
+                if address in memory_lookup:
+                    # Memory location has been written
+                    value = memory_lookup[address]
+                    if hasattr(value, "unsigned_value"):
+                        binary_str = format(
+                            value.unsigned_value(), f"0{value._bus_width}b"
+                        )
+                        lines.append(f"{binary_str} // Address 0x{address:04x}")
+                    else:
+                        lines.append(
+                            f"// Unknown value type at address 0x{address:04x}"
+                        )
+                else:
+                    # Memory location is unwritten - fill with zeros
+                    lines.append(f"{'0' * 8} // Address 0x{address:04x}")
+
+        output_content = "\n".join(lines) + "\n"
+        return output_content
+
+    def get_register_file_dump(self) -> str:
+        """Get the current register file state as a binary string format.
+        
+        Returns:
+            String containing the formatted register dump.
+        """
+        logger.debug("Getting register file state dump")
+
+        reg_file_state = self._state.modules.get(REGISTER_FILE_NAME, None)
+        if reg_file_state is None or not isinstance(reg_file_state, RegisterFileState):
+            raise RuntimeError("RegisterFile state not found or invalid")
+
+        # Create binary string format output as a contiguous memory array
+        lines = ["// Final register contents"]
+
+        # Create a mapping from register index value to register enum
+        register_by_index = {reg.value: reg for reg in RegisterIndex}
+
+        # Find the maximum index to determine array size
+        max_index = max(reg.value for reg in RegisterIndex)
+
+        # Create contiguous array from index 0 to max_index
+        for index in range(max_index + 1):
+            if index in register_by_index:
+                # Real register exists at this index
+                reg_enum = register_by_index[index]
+                if reg_enum in reg_file_state.registers:
+                    value = reg_file_state.registers[reg_enum]
+                    binary_str = format(value.unsigned_value(), f"0{value._bus_width}b")
+                    lines.append(f"{binary_str} // {reg_enum.name}")
+                else:
+                    # Register enum exists but not in state (shouldn't happen)
+                    lines.append(f"{'0' * 8} // {reg_enum.name} (not in state)")
+            else:
+                # Missing register index - fill with reserved placeholder
+                lines.append(f"{'0' * 8} // RESERVED")
+
+        output_content = "\n".join(lines) + "\n"
+        return output_content
