@@ -250,7 +250,7 @@ class Assembler:
     def assemble_with_full_source_info(source: str) -> Tuple[bytes, List[SourceLine]]:
         """Assemble source code and return binary with complete source line information."""
         source_lines = []
-        instructions = []
+        instructions: List[Instruction] = []
         labels: SymbolTable = {}
         address = 0
 
@@ -291,8 +291,8 @@ class Assembler:
 
         # Generate binary
         binary = bytearray()
-        for instr in instructions:
-            binary.extend(Assembler.encode_instruction(instr))
+        for instruction in instructions:
+            binary.extend(Assembler.encode_instruction(instruction))
 
         return bytes(binary), source_lines
 
