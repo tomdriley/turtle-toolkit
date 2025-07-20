@@ -137,6 +137,24 @@ def parse_args() -> argparse.Namespace:
         help="Dump final register file state to file (binary string format with comments)",
     )
 
+    # Compare command
+    compare_parser = subparsers.add_parser(
+        "mem-compare", help="Compare two memory dump files"
+    )
+    compare_parser.add_argument("file1", type=str, help="First dump file to compare")
+    compare_parser.add_argument("file2", type=str, help="Second dump file to compare")
+    compare_parser.add_argument(
+        "--ignore-comments",
+        action="store_true",
+        default=True,
+        help="Ignore comments when comparing (default: True)",
+    )
+    compare_parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Show detailed comparison output",
+    )
+
     return parser.parse_args()
 
 

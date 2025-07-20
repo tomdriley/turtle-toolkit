@@ -176,6 +176,77 @@ def simulate_binary(
             logger.error(f"Failed to dump register file state: {e}")
 
 
+def compare_memory_dumps(
+    file1: str, file2: str, ignore_comments: bool = True, verbose: bool = False
+) -> None:
+    """Compare two memory dump files, ignoring comments if specified."""
+    logger.info(f"Comparing memory dumps: {file1} vs {file2}")
+
+    try:
+        content1 = read_text_file(file1)
+        content2 = read_text_file(file2)
+    except Exception as e:
+        logger.error(f"Failed to read dump files: {e}")
+        return
+
+    # Extract binary values from each file
+    def extract_binary_values(content: str) -> list[str]:
+        lines = content.strip().split("\n")
+        binary_values = []
+
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith("//"):
+                continue  # Skip empty lines and comment-only lines
+
+            if ignore_comments:
+                # Extract just the binary part (before any //)
+                parts = line.split("//")
+                binary_part = parts[0].strip()
+            else:
+                binary_part = line
+
+            # Check if this looks like a binary string (only 0s and 1s)
+            if binary_part and all(c in "01" for c in binary_part):
+                binary_values.append(binary_part)
+
+        return binary_values
+
+    values1 = extract_binary_values(content1)
+    values2 = extract_binary_values(content2)
+
+    # Compare the binary values
+    if len(values1) != len(values2):
+        print("❌ MISMATCH: Different number of values")
+        print(f"  {file1}: {len(values1)} values")
+        print(f"  {file2}: {len(values2)} values")
+        return
+
+    mismatches = []
+    for i, (val1, val2) in enumerate(zip(values1, values2)):
+        if val1 != val2:
+            mismatches.append((i, val1, val2))
+
+    if not mismatches:
+        print("✅ SUCCESS: Memory dumps are identical!")
+        if verbose:
+            print(f"  Compared {len(values1)} binary values")
+            print(f"  File 1: {file1}")
+            print(f"  File 2: {file2}")
+    else:
+        print(f"❌ MISMATCH: Found {len(mismatches)} differences")
+        print(f"  Total values compared: {len(values1)}")
+
+        if verbose:
+            print("\nDetailed differences:")
+            for index, val1, val2 in mismatches[:10]:  # Show first 10 mismatches
+                print(f"  Index {index:3}: {val1} ≠ {val2}")
+            if len(mismatches) > 10:
+                print(f"  ... and {len(mismatches) - 10} more differences")
+        else:
+            print("  Use --verbose to see detailed differences")
+
+
 def main() -> None:
     """Main entry point for the application."""
     args = setup_cli()
@@ -209,3 +280,7 @@ def main() -> None:
             args.dump_registers,
             args.dump_memory_full,
         )
+
+    elif args.command == "mem-compare":
+        # Compare two memory dump files
+        compare_memory_dumps(args.file1, args.file2, args.ignore_comments, args.verbose)

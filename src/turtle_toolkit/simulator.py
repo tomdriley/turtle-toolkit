@@ -514,7 +514,7 @@ class Simulator(metaclass=SingletonMeta):
         Args:
             dump_full_memory: If True, dumps entire memory space (0 to max address).
                              If False, dumps contiguous range from min to max written address.
-        
+
         Returns:
             String containing the formatted memory dump.
         """
@@ -590,7 +590,7 @@ class Simulator(metaclass=SingletonMeta):
 
     def get_register_file_dump(self) -> str:
         """Get the current register file state as a binary string format.
-        
+
         Returns:
             String containing the formatted register dump.
         """
