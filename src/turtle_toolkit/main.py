@@ -15,7 +15,7 @@ from importlib.metadata import metadata
 from typing import Optional
 
 from turtle_toolkit.assembler import Assembler
-from turtle_toolkit.common.cli import setup_cli
+from turtle_toolkit.common.cli import AssemblerFormats, CommentLevel, setup_cli
 from turtle_toolkit.common.logger import logger
 from turtle_toolkit.simulator import Simulator
 
@@ -62,20 +62,69 @@ def write_binary_file(file_path: str, data: bytes) -> None:
         sys.exit(1)
 
 
-def assemble_file(input_file: str, output_file: Optional[str] = None) -> bytes:
+def write_text_file(file_path: str, data: str) -> None:
+    """Write text data to a file."""
+    try:
+        with open(file_path, "w") as file:
+            file.write(data)
+        logger.info(f"Text written to: {file_path}")
+    except IOError as e:
+        logger.error(f"Error writing to file {file_path}: {e}")
+        sys.exit(1)
+
+
+def assemble_file(
+    input_file: str,
+    output_file: Optional[str] = None,
+    format: AssemblerFormats = AssemblerFormats.BIN,
+    output_length: int = 0,
+    comment_level: CommentLevel = CommentLevel.STRIPPED,
+) -> bytes:
     """Assemble the input file and save to output file if specified."""
     if not output_file:
         # Default output file is input_file with .bin extension
         base_name = os.path.splitext(input_file)[0]
-        output_file = f"{base_name}.bin"
+        extension = "bin" if format == AssemblerFormats.BIN else f"{format.value}.txt"
+        output_file = f"{base_name}.{extension}"
 
     logger.info(f"Assembling {input_file} to {output_file}")
 
     source_code = read_text_file(input_file)
     try:
-        binary = Assembler.assemble(source_code)
-        write_binary_file(output_file, binary)
-        logger.info(f"Assembly successful: {len(binary)//2} instructions written")
+        # Handle different output formats
+        if format == AssemblerFormats.BIN:
+            binary = Assembler.assemble(source_code)
+            formatted_text = ""
+        elif format == AssemblerFormats.BINARY_STRING:
+            binary, formatted_text = Assembler.assemble_to_binary_string(
+                source_code, input_file, comment_level.value
+            )
+        elif format == AssemblerFormats.HEX_STRING:
+            binary, formatted_text = Assembler.assemble_to_hex_string(
+                source_code, input_file, comment_level.value
+            )
+        else:
+            raise ValueError(f"Unsupported format: {format}")
+
+        binary_length = len(binary)
+
+        if output_length > 0 and binary_length > output_length:
+            raise ValueError(
+                f"Output length {output_length} is less than the assembled binary length {binary_length}"
+            )
+        if output_length > 0 and binary_length < output_length:
+            # Pad the binary to the specified length with zeroes
+            binary += b"\x00" * (output_length - binary_length)
+
+        # Write the output based on format
+        if format == AssemblerFormats.BIN:
+            write_binary_file(output_file, binary)
+        else:
+            write_text_file(output_file, formatted_text)
+
+        logger.info(f"Assembly successful: {binary_length//2} instructions written")
+        if output_length > binary_length:
+            logger.info(f"Output padded to {output_length} bytes with zeroes")
         return binary
     except Exception as e:
         logger.error(f"Assembly failed: {e}")
@@ -111,7 +160,9 @@ def main() -> None:
         sys.exit(1)
 
     if args.command == "assemble":
-        assemble_file(args.input_file, args.output)
+        assemble_file(
+            args.input_file, args.output, args.format, args.output_length, args.comments
+        )
 
     elif args.command == "simulate":
         binary = read_binary_file(args.input_file, args.allow_non_bin_ext)

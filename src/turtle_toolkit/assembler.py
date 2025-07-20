@@ -1,14 +1,9 @@
-"""assembler.py - Assembler helper script
-
-This script provides functionality to convert assembly language
-instructions into binary format. It includes a simple assembler
-that can parse a limited set of instructions and convert them
-into their binary representations.
-
+"""assembler.py - Assembler for the TTL CPU ISA
 Author: Tom Riley
-Date: 2025-05-07
+Date: 2025-07-20
 """
 
+import os
 import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
@@ -41,6 +36,16 @@ LABEL_AND_INSTR_RE = re.compile(r"^\s*(?:(\w+):)?\s*(\w+)?(?:\s+(.+))?$")
 
 
 @dataclass
+class SourceLine:
+    """Class to hold source line information for generating commented output."""
+
+    line_number: int
+    original_text: str
+    instruction: Optional["Instruction"] = None
+    is_instruction_line: bool = False
+
+
+@dataclass
 class Instruction:
     """Class to hold the instruction format and its components."""
 
@@ -53,6 +58,7 @@ class Instruction:
     )  # Bits 4-7
     data_immediate: Optional[DataBusValue] = DataBusValue(0)  # Bits 8-15
     register: Optional[RegisterIndex] = None  # Bits 8-11
+    source_line: Optional[str] = None  # Track original assembly line for comments
 
 
 SymbolTable = Dict[str, int]
@@ -68,6 +74,7 @@ class Assembler:
         lines = source.splitlines()
 
         for line in lines:
+            original_line = line  # Keep original line for comments
             line = line.split(";")[0].strip()  # Remove comments and whitespace
             if not line:
                 continue
@@ -86,7 +93,9 @@ class Assembler:
 
             if instr:
                 instr, operand = Assembler.replace_macros(instr, operand)
-                instructions.append(Assembler.parse_instruction(instr, operand))
+                instruction = Assembler.parse_instruction(instr, operand)
+                instruction.source_line = original_line.strip()  # Store original line
+                instructions.append(instruction)
                 address += INSTRUCTION_WIDTH // 8
 
         return instructions, labels
@@ -227,3 +236,304 @@ class Assembler:
         for instr in instructions:
             binary.extend(Assembler.encode_instruction(instr))
         return bytes(binary)
+
+    @staticmethod
+    def assemble_with_source_info(source: str) -> Tuple[bytes, List[Instruction]]:
+        """Assemble the source code into binary and return instructions with source line info."""
+        instructions, labels = Assembler.parse_assembly(source)
+        binary = bytearray()
+        for instr in instructions:
+            binary.extend(Assembler.encode_instruction(instr))
+        return bytes(binary), instructions
+
+    @staticmethod
+    def assemble_with_full_source_info(source: str) -> Tuple[bytes, List[SourceLine]]:
+        """Assemble source code and return binary with complete source line information."""
+        source_lines = []
+        instructions = []
+        labels: SymbolTable = {}
+        address = 0
+
+        lines = source.splitlines()
+
+        for line_number, line in enumerate(lines, 1):
+            original_line = line
+            source_line = SourceLine(
+                line_number=line_number,
+                original_text=original_line,
+                instruction=None,
+                is_instruction_line=False,
+            )
+
+            # Parse the line for instructions
+            clean_line = line.split(";")[0].strip()  # Remove comments and whitespace
+            if clean_line:
+                match = LABEL_AND_INSTR_RE.match(clean_line)
+                if match:
+                    label: Optional[str]
+                    instr: Optional[str]
+                    operand: Optional[str]
+                    label, instr, operand = match.groups()
+
+                    if label:
+                        labels[label] = address
+
+                    if instr:
+                        instr, operand = Assembler.replace_macros(instr, operand)
+                        instruction = Assembler.parse_instruction(instr, operand)
+                        instruction.source_line = original_line.strip()
+                        source_line.instruction = instruction
+                        source_line.is_instruction_line = True
+                        instructions.append(instruction)
+                        address += INSTRUCTION_WIDTH // 8
+
+            source_lines.append(source_line)
+
+        # Generate binary
+        binary = bytearray()
+        for instr in instructions:
+            binary.extend(Assembler.encode_instruction(instr))
+
+        return bytes(binary), source_lines
+
+    @staticmethod
+    def assemble_to_binary_string(
+        source_code: str,
+        input_filename: str,
+        comment_level: str = "stripped",
+    ) -> Tuple[bytes, str]:
+        """
+        Assemble source code and return binary with binary string format.
+
+        Args:
+            source_code: The assembly source code
+            input_filename: Name of the input file (for comments)
+            comment_level: 'none', 'stripped', or 'full'
+
+        Returns:
+            Tuple of (binary_data, binary_string)
+        """
+        if comment_level == "full":
+            binary, source_lines = Assembler.assemble_with_full_source_info(source_code)
+            formatted_text = OutputFormatter.format_binary_string_full(
+                binary, input_filename, source_lines
+            )
+        elif comment_level == "stripped":
+            binary, instructions = Assembler.assemble_with_source_info(source_code)
+            formatted_text = OutputFormatter.format_binary_string_stripped(
+                binary, input_filename, instructions
+            )
+        else:  # comment_level == "none"
+            binary = Assembler.assemble(source_code)
+            formatted_text = OutputFormatter.format_binary_string_none(binary)
+
+        return binary, formatted_text
+
+    @staticmethod
+    def assemble_to_hex_string(
+        source_code: str,
+        input_filename: str,
+        comment_level: str = "stripped",
+    ) -> Tuple[bytes, str]:
+        """
+        Assemble source code and return binary with hex string format.
+
+        Args:
+            source_code: The assembly source code
+            input_filename: Name of the input file (for comments)
+            comment_level: 'none', 'stripped', or 'full'
+
+        Returns:
+            Tuple of (binary_data, hex_string)
+        """
+        if comment_level == "full":
+            binary, source_lines = Assembler.assemble_with_full_source_info(source_code)
+            formatted_text = OutputFormatter.format_hex_string_full(
+                binary, input_filename, source_lines
+            )
+        elif comment_level == "stripped":
+            binary, instructions = Assembler.assemble_with_source_info(source_code)
+            formatted_text = OutputFormatter.format_hex_string_stripped(
+                binary, input_filename, instructions
+            )
+        else:  # comment_level == "none"
+            binary = Assembler.assemble(source_code)
+            formatted_text = OutputFormatter.format_hex_string_none(binary)
+
+        return binary, formatted_text
+
+
+class OutputFormatter:
+    """Handles formatting of assembled binary data into various text formats."""
+
+    @staticmethod
+    def format_binary_string_none(binary: bytes) -> str:
+        """Format binary data as plain binary string with no comments."""
+        return (
+            "\n".join(
+                f"{binary[i]:08b} {binary[i+1]:08b}" for i in range(0, len(binary), 2)
+            )
+            + "\n"
+        )
+
+    @staticmethod
+    def format_binary_string_stripped(
+        binary: bytes,
+        input_filename: str,
+        instructions: List[Instruction],
+    ) -> str:
+        """Format binary data as binary string with stripped assembly comments."""
+        binary_str = f"// Assembled from: {os.path.basename(input_filename)}\n"
+
+        byte_index = 0
+        for instruction in instructions:
+            if byte_index < len(binary):
+                # Each instruction is 2 bytes (16 bits)
+                byte1 = binary[byte_index] if byte_index < len(binary) else 0
+                byte2 = binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+
+                # Format as binary strings
+                binary_line = f"{byte1:08b} {byte2:08b}"
+
+                # Add comment with original assembly line (stripped of comments)
+                if instruction.source_line:
+                    source_comment = instruction.source_line.split(";")[0].strip()
+                    binary_str += f"{binary_line:<18} // {source_comment}\n"
+                else:
+                    binary_str += f"{binary_line}\n"
+
+                byte_index += 2
+
+        # Handle any remaining padding bytes
+        while byte_index < len(binary):
+            byte1 = binary[byte_index] if byte_index < len(binary) else 0
+            byte2 = binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+            binary_line = f"{byte1:08b} {byte2:08b}"
+            binary_str += f"{binary_line}\n"
+            byte_index += 2
+
+        return binary_str
+
+    @staticmethod
+    def format_binary_string_full(
+        binary: bytes,
+        input_filename: str,
+        source_lines: List[SourceLine],
+    ) -> str:
+        """Format binary data as binary string with full source comments and spacing."""
+        binary_str = f"// Assembled from: {os.path.basename(input_filename)}\n"
+
+        instruction_index = 0
+
+        for source_line in source_lines:
+            if source_line.is_instruction_line and source_line.instruction:
+                # Calculate byte position for this instruction
+                byte_index = instruction_index * 2
+                if byte_index < len(binary):
+                    byte1 = binary[byte_index] if byte_index < len(binary) else 0
+                    byte2 = (
+                        binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+                    )
+                    binary_line = f"{byte1:08b} {byte2:08b}"
+                    binary_str += f"{binary_line:<18} // {source_line.original_text}\n"
+                    instruction_index += 1
+            else:
+                # Non-instruction line (comment, blank line, etc.)
+                binary_str += f"{'':18} // {source_line.original_text}\n"
+
+        # Handle any remaining padding bytes
+        byte_index = instruction_index * 2
+        while byte_index < len(binary):
+            byte1 = binary[byte_index] if byte_index < len(binary) else 0
+            byte2 = binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+            binary_line = f"{byte1:08b} {byte2:08b}"
+            binary_str += f"{binary_line}\n"
+            byte_index += 2
+
+        return binary_str
+
+    @staticmethod
+    def format_hex_string_none(binary: bytes) -> str:
+        """Format binary data as plain hex string with no comments."""
+        return (
+            "\n".join(
+                f"{binary[i]:02x} {binary[i+1]:02x}" for i in range(0, len(binary), 2)
+            )
+            + "\n"
+        )
+
+    @staticmethod
+    def format_hex_string_stripped(
+        binary: bytes,
+        input_filename: str,
+        instructions: List[Instruction],
+    ) -> str:
+        """Format binary data as hex string with stripped assembly comments."""
+        hex_str = f"// Assembled from: {os.path.basename(input_filename)}\n"
+
+        byte_index = 0
+        for instruction in instructions:
+            if byte_index < len(binary):
+                # Each instruction is 2 bytes (16 bits)
+                byte1 = binary[byte_index] if byte_index < len(binary) else 0
+                byte2 = binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+
+                # Format as hex strings
+                hex_line = f"{byte1:02x} {byte2:02x}"
+
+                # Add comment with original assembly line (stripped of comments)
+                if instruction.source_line:
+                    source_comment = instruction.source_line.split(";")[0].strip()
+                    hex_str += f"{hex_line:<6} // {source_comment}\n"
+                else:
+                    hex_str += f"{hex_line}\n"
+
+                byte_index += 2
+
+        # Handle any remaining padding bytes
+        while byte_index < len(binary):
+            byte1 = binary[byte_index] if byte_index < len(binary) else 0
+            byte2 = binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+            hex_line = f"{byte1:02x} {byte2:02x}"
+            hex_str += f"{hex_line}\n"
+            byte_index += 2
+
+        return hex_str
+
+    @staticmethod
+    def format_hex_string_full(
+        binary: bytes,
+        input_filename: str,
+        source_lines: List[SourceLine],
+    ) -> str:
+        """Format binary data as hex string with full source comments and spacing."""
+        hex_str = f"// Assembled from: {os.path.basename(input_filename)}\n"
+
+        instruction_index = 0
+
+        for source_line in source_lines:
+            if source_line.is_instruction_line and source_line.instruction:
+                # Calculate byte position for this instruction
+                byte_index = instruction_index * 2
+                if byte_index < len(binary):
+                    byte1 = binary[byte_index] if byte_index < len(binary) else 0
+                    byte2 = (
+                        binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+                    )
+                    hex_line = f"{byte1:02x} {byte2:02x}"
+                    hex_str += f"{hex_line:<6} // {source_line.original_text}\n"
+                    instruction_index += 1
+            else:
+                # Non-instruction line (comment, blank line, etc.)
+                hex_str += f"{'':6} // {source_line.original_text}\n"
+
+        # Handle any remaining padding bytes
+        byte_index = instruction_index * 2
+        while byte_index < len(binary):
+            byte1 = binary[byte_index] if byte_index < len(binary) else 0
+            byte2 = binary[byte_index + 1] if byte_index + 1 < len(binary) else 0
+            hex_line = f"{byte1:02x} {byte2:02x}"
+            hex_str += f"{hex_line}\n"
+            byte_index += 2
+
+        return hex_str

@@ -4,6 +4,7 @@ Date: 2025-05-04
 """
 
 import argparse
+from enum import Enum
 from importlib.metadata import metadata
 
 from turtle_toolkit.common.logger import configure_logger
@@ -12,6 +13,22 @@ PROJECT_METADATA = metadata("turtle_toolkit")
 PROJECT_NAME = PROJECT_METADATA["Name"]
 PROJECT_VERSION = PROJECT_METADATA["Version"]
 PROJECT_DESCRIPTION = PROJECT_METADATA["Summary"]
+
+
+class AssemblerFormats(Enum):
+    """Enumeration for assembler output formats."""
+
+    BIN = "bin"
+    BINARY_STRING = "binstr"
+    HEX_STRING = "hexstr"
+
+
+class CommentLevel(Enum):
+    """Enumeration for comment levels in text output formats."""
+
+    NONE = "none"  # No comments, just binary/hex
+    STRIPPED = "stripped"  # Only instruction lines with comments stripped
+    FULL = "full"  # Full source with all comments and blank lines
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,6 +50,29 @@ def parse_args() -> argparse.Namespace:
     assemble_parser.add_argument("input_file", type=str, help="Assembly source file")
     assemble_parser.add_argument(
         "-o", "--output", type=str, help="Output binary file (default: input_file.bin)"
+    )
+    assemble_parser.add_argument(
+        "-f",
+        "--format",
+        type=lambda x: AssemblerFormats(x),
+        choices=list(AssemblerFormats),
+        help="Output format. Choices are 'bin' (for binary), 'binstr' (for binary string), or 'hexstr' (for hex string). Default is 'bin'.",
+        default=AssemblerFormats.BIN,
+    )
+    assemble_parser.add_argument(
+        "-c",
+        "--comments",
+        type=lambda x: CommentLevel(x),
+        choices=list(CommentLevel),
+        help="Comment level for text formats. 'none' = no comments, 'stripped' = instruction lines only, 'full' = all source lines. Default is 'stripped'.",
+        default=CommentLevel.STRIPPED,
+    )
+    assemble_parser.add_argument(
+        "-l",
+        "--output-length",
+        type=int,
+        default=0,
+        help="Length of output binary file in bytes. If 0, the assembler will determine the length automatically.",
     )
 
     # Simulator command

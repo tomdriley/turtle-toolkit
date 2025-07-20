@@ -1,0 +1,12 @@
+// Assembled from: load_store_different_address.asm
+44 01  // SET 1
+34 0a  // PUT DOFF
+14 00  // STORE
+44 00  // SET 0
+34 0a  // PUT DOFF
+14 00  // STORE
+44 01  // SET 1
+34 0a  // PUT DOFF
+44 0a  // SET 0x0A
+04 00  // LOAD
+08 00  // HALT
