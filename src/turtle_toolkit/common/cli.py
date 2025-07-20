@@ -82,7 +82,7 @@ def parse_args() -> argparse.Namespace:
         "-f",
         "--format",
         type=lambda x: AssemblerFormats(x),
-        choices=list(AssemblerFormats),
+        choices=[f.value for f in AssemblerFormats],
         help="Input format. 'bin' (for binary), 'binstr' (for binary string), or 'hexstr' (for hex string). Default is 'bin'.",
         default=AssemblerFormats.BIN,
     )
