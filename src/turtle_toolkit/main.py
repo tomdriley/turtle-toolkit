@@ -253,8 +253,12 @@ def simulate_binary(
 
 def compare_memory_dumps(
     file1: str, file2: str, ignore_comments: bool = True, verbose: bool = False
-) -> None:
-    """Compare two memory dump files, ignoring comments if specified."""
+) -> bool:
+    """Compare two memory dump files, ignoring comments if specified.
+
+    Returns:
+        bool: True if files are identical, False if they differ or an error occurs.
+    """
     logger.info(f"Comparing memory dumps: {file1} vs {file2}")
 
     try:
@@ -262,7 +266,7 @@ def compare_memory_dumps(
         content2 = read_text_file(file2)
     except Exception as e:
         logger.error(f"Failed to read dump files: {e}")
-        return
+        return False
 
     # Extract binary values from each file
     def extract_binary_values(content: str) -> list[str]:
@@ -281,9 +285,11 @@ def compare_memory_dumps(
             else:
                 binary_part = line
 
-            # Check if this looks like a binary string (only 0s and 1s)
-            if binary_part and all(c in "01" for c in binary_part):
-                binary_values.append(binary_part)
+            # Check if this looks like a binary string (only 0s, 1s, and whitespace)
+            if binary_part and all(c in "01 \t" for c in binary_part):
+                # Remove all whitespace for comparison
+                clean_binary = "".join(binary_part.split())
+                binary_values.append(clean_binary)
 
         return binary_values
 
@@ -295,7 +301,7 @@ def compare_memory_dumps(
         print("❌ MISMATCH: Different number of values")
         print(f"  {file1}: {len(values1)} values")
         print(f"  {file2}: {len(values2)} values")
-        return
+        return False
 
     mismatches = []
     for i, (val1, val2) in enumerate(zip(values1, values2)):
@@ -308,6 +314,7 @@ def compare_memory_dumps(
             print(f"  Compared {len(values1)} binary values")
             print(f"  File 1: {file1}")
             print(f"  File 2: {file2}")
+        return True
     else:
         print(f"❌ MISMATCH: Found {len(mismatches)} differences")
         print(f"  Total values compared: {len(values1)}")
@@ -320,6 +327,7 @@ def compare_memory_dumps(
                 print(f"  ... and {len(mismatches) - 10} more differences")
         else:
             print("  Use --verbose to see detailed differences")
+        return False
 
 
 def main() -> None:
@@ -366,4 +374,8 @@ def main() -> None:
 
     elif args.command == "mem-compare":
         # Compare two memory dump files
-        compare_memory_dumps(args.file1, args.file2, args.ignore_comments, args.verbose)
+        success = compare_memory_dumps(
+            args.file1, args.file2, args.ignore_comments, args.verbose
+        )
+        if not success:
+            sys.exit(1)
