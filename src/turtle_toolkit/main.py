@@ -296,13 +296,16 @@ def compare_memory_dumps(
     values1 = extract_binary_values(content1)
     values2 = extract_binary_values(content2)
 
-    # Compare the binary values
-    if len(values1) != len(values2):
-        print("❌ MISMATCH: Different number of values")
-        print(f"  {file1}: {len(values1)} values")
-        print(f"  {file2}: {len(values2)} values")
-        return False
+    # Normalize arrays to handle trailing zeros - pad shorter array with zeros
+    max_len = max(len(values1), len(values2))
+    
+    # Pad with zeros if needed
+    while len(values1) < max_len:
+        values1.append("00000000")  # 8-bit zeros
+    while len(values2) < max_len:
+        values2.append("00000000")  # 8-bit zeros
 
+    # Compare the binary values (now they have equal length)
     mismatches = []
     for i, (val1, val2) in enumerate(zip(values1, values2)):
         if val1 != val2:
