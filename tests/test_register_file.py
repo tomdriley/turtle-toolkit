@@ -54,44 +54,47 @@ def test_set_and_get_register_value(register_file):
 def test_set_and_get_status_register_value(register_file):
     test_signed_overflow = True
     test_carry_flag = False
+    test_positive_flag = True
     current_status = register_file.get_status_register_value()
     expected_status_value = StatusRegisterValue(
         zero=current_status.zero,
-        positive=current_status.positive,
+        positive=test_positive_flag,
         carry_set=test_carry_flag,
         signed_overflow_set=test_signed_overflow,
     )
 
-    register_file.set_next_status_register_value(test_signed_overflow, test_carry_flag)
+    register_file.set_next_status_register_value(test_signed_overflow, test_carry_flag, test_positive_flag)
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value
 
     test_signed_overflow_2 = False
     test_carry_flag_2 = True
+    test_positive_flag_2 = False
     expected_status_value_2 = StatusRegisterValue(
         zero=current_status.zero,
-        positive=current_status.positive,
+        positive=test_positive_flag_2,
         carry_set=test_carry_flag_2,
         signed_overflow_set=test_signed_overflow_2,
     )
 
     register_file.set_next_status_register_value(
-        test_signed_overflow_2, test_carry_flag_2
+        test_signed_overflow_2, test_carry_flag_2, test_positive_flag_2
     )
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value_2
 
     test_signed_overflow_3 = True
     test_carry_flag_3 = True
+    test_positive_flag_3 = True
     expected_status_value_3 = StatusRegisterValue(
         zero=current_status.zero,
-        positive=current_status.positive,
+        positive=test_positive_flag_3,
         carry_set=test_carry_flag_3,
         signed_overflow_set=test_signed_overflow_3,
     )
 
     register_file.set_next_status_register_value(
-        test_signed_overflow_3, test_carry_flag_3
+        test_signed_overflow_3, test_carry_flag_3, test_positive_flag_3
     )
     register_file.update_state()
     assert register_file.get_status_register_value() == expected_status_value_3

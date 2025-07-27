@@ -15,6 +15,7 @@ class ALUOutputs:
     result: DataBusValue = DataBusValue(0)
     signed_overflow: bool = False
     carry_flag: bool = False
+    positive_flag: bool = False
 
 
 class ALU(BaseModule):
@@ -68,4 +69,8 @@ class ALU(BaseModule):
             outputs.result = ~operand_a
         else:
             raise ValueError(f"Invalid ALU operation: {function}")
+        
+        # Compute positive flag (true if MSB is 0, meaning result is positive)
+        outputs.positive_flag = not outputs.result.is_negative()
+        
         return outputs

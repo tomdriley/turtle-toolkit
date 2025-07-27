@@ -55,6 +55,7 @@ class RegisterFileState(BaseModuleState):
     pending_value: Optional[DataBusValue] = None
     pending_carry_flag: Optional[bool] = None
     pending_signed_overflow: Optional[bool] = None
+    pending_positive_flag: Optional[bool] = None
     pending_accumulator: Optional[DataBusValue] = None
 
 
@@ -116,12 +117,14 @@ class RegisterFile(BaseModule):
         )
 
     def set_next_status_register_value(
-        self, signed_overflow: bool, carry_flag: bool
+        self, signed_overflow: bool, carry_flag: bool, positive_flag: bool
     ) -> None:
         assert isinstance(signed_overflow, bool)
         assert isinstance(carry_flag, bool)
+        assert isinstance(positive_flag, bool)
         self.state.pending_carry_flag = carry_flag
         self.state.pending_signed_overflow = signed_overflow
+        self.state.pending_positive_flag = positive_flag
 
     def set_next_acc_value(self, value: DataBusValue) -> None:
         self.state.pending_accumulator = value
@@ -148,39 +151,48 @@ class RegisterFile(BaseModule):
         self.state.pending_value = None
         if self.state.pending_accumulator is not None:
             self.state.registers[RegisterIndex.ACC] = self.state.pending_accumulator
-        zero = (
-            (self.state.pending_accumulator.unsigned_value() == 0)
-            if self.state.pending_accumulator
-            else None
-        )
-        positive = (
-            (self.state.pending_accumulator.signed_value() >= 0)
-            if self.state.pending_accumulator
-            else None
-        )
+        
+        # Only update status register if explicitly requested (like RTL status_write_enable)
+        if (self.state.pending_carry_flag is not None or
+                self.state.pending_signed_overflow is not None or
+                self.state.pending_positive_flag is not None):
+            
+            zero = (
+                (self.state.pending_accumulator.unsigned_value() == 0)
+                if self.state.pending_accumulator
+                else None
+            )
+            # Use the pending_positive_flag from ALU instead of computing from accumulator
+            positive = self.state.pending_positive_flag
 
-        def resolve_next_bit(current_bit: int, pending_bit: Optional[bool]) -> int:
-            """Resolve the next bit value."""
-            return int(pending_bit) if pending_bit is not None else current_bit
+            def resolve_next_bit(current_bit: int, pending_bit: Optional[bool]) -> int:
+                """Resolve the next bit value."""
+                return int(pending_bit) if pending_bit is not None else current_bit
 
-        def compute_next_status_bit(shift: int, pending: Optional[bool]) -> int:
-            """Compute the next status bit."""
-            current_bit = (current_status_value >> shift) & 1
-            return resolve_next_bit(current_bit, pending) << shift
+            def compute_next_status_bit(shift: int, pending: Optional[bool]) -> int:
+                """Compute the next status bit."""
+                current_bit = (current_status_value >> shift) & 1
+                return resolve_next_bit(current_bit, pending) << shift
 
-        # Extract the current status register value
-        current_status_value = self.state.registers[
-            RegisterIndex.STATUS
-        ].unsigned_value()
+            # Extract the current status register value
+            current_status_value = self.state.registers[
+                RegisterIndex.STATUS
+            ].unsigned_value()
 
-        # Compute the next status register value
-        next_status_value = 0
-        next_status_value |= compute_next_status_bit(0, zero)
-        next_status_value |= compute_next_status_bit(1, positive)
-        next_status_value |= compute_next_status_bit(2, self.state.pending_carry_flag)
-        next_status_value |= compute_next_status_bit(
-            3, self.state.pending_signed_overflow
-        )
+            # Compute the next status register value
+            next_status_value = 0
+            next_status_value |= compute_next_status_bit(0, zero)
+            next_status_value |= compute_next_status_bit(1, positive)
+            next_status_value |= compute_next_status_bit(2, self.state.pending_carry_flag)
+            next_status_value |= compute_next_status_bit(
+                3, self.state.pending_signed_overflow
+            )
 
-        # Update the STATUS register with the computed value
-        self.state.registers[RegisterIndex.STATUS] = DataBusValue(next_status_value)
+            # Update the STATUS register with the computed value
+            self.state.registers[RegisterIndex.STATUS] = DataBusValue(next_status_value)
+
+        # Clear pending flags regardless of whether status was updated
+        self.state.pending_carry_flag = None
+        self.state.pending_signed_overflow = None
+        self.state.pending_positive_flag = None
+        self.state.pending_accumulator = None

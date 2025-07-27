@@ -200,7 +200,7 @@ class Simulator(metaclass=SingletonMeta):
         acc_next = alu_outputs.result
         self._register_file.set_next_acc_value(acc_next)
         self._register_file.set_next_status_register_value(
-            alu_outputs.signed_overflow, alu_outputs.carry_flag
+            alu_outputs.signed_overflow, alu_outputs.carry_flag, alu_outputs.positive_flag
         )
         logger.debug(f"ALU result: {acc_next}.")
         return True
