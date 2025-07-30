@@ -69,10 +69,12 @@ class Assembler:
     def parse_assembly(source: str) -> Tuple[List[Instruction], SymbolTable]:
         labels: SymbolTable = {}
         instructions: List[Instruction] = []
+        unresolved_instructions: List[Tuple[Instruction, str, int]] = []  # (instruction, operand, address)
         address: int = 0
 
         lines = source.splitlines()
 
+        # First pass: collect labels and parse instructions
         for line in lines:
             original_line = line  # Keep original line for comments
             line = line.split(";")[0].strip()  # Remove comments and whitespace
@@ -89,14 +91,41 @@ class Assembler:
             label, instr, operand = match.groups()
 
             if label:
-                labels[label] = address
+                labels[label.upper()] = address  # Store labels in uppercase
 
             if instr:
                 instr, operand = Assembler.replace_macros(instr, operand)
-                instruction = Assembler.parse_instruction(instr, operand)
-                instruction.source_line = original_line.strip()  # Store original line
-                instructions.append(instruction)
+                try:
+                    instruction = Assembler.parse_instruction(instr, operand)
+                    instruction.source_line = original_line.strip()  # Store original line
+                    instructions.append(instruction)
+                except SyntaxError as e:
+                    # Check if this is a label reference that needs to be resolved
+                    if "Invalid immediate:" in str(e) and operand and instr.upper() in (BRANCH_OPCODE_CONDITION_MAP.keys() | JUMP_IMM_OPCODE_TEXTS):
+                        # This is likely a label reference, defer resolution
+                        instruction = Instruction()
+                        if instr.upper() in BRANCH_OPCODE_CONDITION_MAP:
+                            instruction.conditional_branch = True
+                            instruction.branch_conditon = BRANCH_OPCODE_CONDITION_MAP[instr.upper()]
+                        elif instr.upper() in JUMP_IMM_OPCODE_TEXTS:
+                            instruction.opcode = Opcode.JUMP_IMM
+                        instruction.source_line = original_line.strip()
+                        instructions.append(instruction)
+                        unresolved_instructions.append((instruction, operand.upper(), address))
+                    else:
+                        raise e
                 address += INSTRUCTION_WIDTH // 8
+
+        # Second pass: resolve label references
+        for instruction, label_ref, instr_address in unresolved_instructions:
+            if label_ref not in labels:
+                raise SyntaxError(f"Undefined label: {label_ref}")
+            
+            target_address = labels[label_ref]
+            # Calculate relative offset for branches (PC-relative addressing from current PC)
+            offset = target_address - instr_address
+            
+            instruction.address_immediate = InstructionAddressBusValue(offset)
 
         return instructions, labels
 
@@ -251,11 +280,13 @@ class Assembler:
         """Assemble source code and return binary with complete source line information."""
         source_lines = []
         instructions: List[Instruction] = []
+        unresolved_instructions: List[Tuple[Instruction, str, int]] = []  # (instruction, operand, address)
         labels: SymbolTable = {}
         address = 0
 
         lines = source.splitlines()
 
+        # First pass: collect labels and parse instructions
         for line_number, line in enumerate(lines, 1):
             original_line = line
             source_line = SourceLine(
@@ -276,18 +307,47 @@ class Assembler:
                     label, instr, operand = match.groups()
 
                     if label:
-                        labels[label] = address
+                        labels[label.upper()] = address  # Store labels in uppercase
 
                     if instr:
                         instr, operand = Assembler.replace_macros(instr, operand)
-                        instruction = Assembler.parse_instruction(instr, operand)
-                        instruction.source_line = original_line.strip()
-                        source_line.instruction = instruction
-                        source_line.is_instruction_line = True
-                        instructions.append(instruction)
+                        try:
+                            instruction = Assembler.parse_instruction(instr, operand)
+                            instruction.source_line = original_line.strip()
+                            source_line.instruction = instruction
+                            source_line.is_instruction_line = True
+                            instructions.append(instruction)
+                        except SyntaxError as e:
+                            # Check if this is a label reference that needs to be resolved
+                            if "Invalid immediate:" in str(e) and operand and instr.upper() in (BRANCH_OPCODE_CONDITION_MAP.keys() | JUMP_IMM_OPCODE_TEXTS):
+                                # This is likely a label reference, defer resolution
+                                instruction = Instruction()
+                                if instr.upper() in BRANCH_OPCODE_CONDITION_MAP:
+                                    instruction.conditional_branch = True
+                                    instruction.branch_conditon = BRANCH_OPCODE_CONDITION_MAP[instr.upper()]
+                                elif instr.upper() in JUMP_IMM_OPCODE_TEXTS:
+                                    instruction.opcode = Opcode.JUMP_IMM
+                                instruction.source_line = original_line.strip()
+                                source_line.instruction = instruction
+                                source_line.is_instruction_line = True
+                                instructions.append(instruction)
+                                unresolved_instructions.append((instruction, operand.upper(), address))
+                            else:
+                                raise e
                         address += INSTRUCTION_WIDTH // 8
 
             source_lines.append(source_line)
+
+        # Second pass: resolve label references
+        for instruction, label_ref, instr_address in unresolved_instructions:
+            if label_ref not in labels:
+                raise SyntaxError(f"Undefined label: {label_ref}")
+            
+            target_address = labels[label_ref]
+            # Calculate relative offset for branches (PC-relative addressing from current PC)
+            offset = target_address - instr_address
+            
+            instruction.address_immediate = InstructionAddressBusValue(offset)
 
         # Generate binary
         binary = bytearray()
