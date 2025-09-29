@@ -22,11 +22,12 @@ PUT R0      ; R0 = 100 (Loop counter)
 LOOP_MUL:
 ; PC = 14
 GET R0      ; ACC = R0 (Get loop counter)
+NOP         ; Set the status register from ACC
 ; PC = 16
 ; BZ offset = (END_MUL PC) - (Current PC)
 ; END_MUL is at PC=42. Offset = 42 - 16 = 26.
 ; This means if R0 is 0, jump to END_MUL.
-BZ 26       ; If R0 is 0, branch to END_MUL (PC + 26)
+BZ END_MUL  ; If R0 is 0, branch to END_MUL (PC + 26)
             ; This is a branch instruction that checks if the counter is zero.
             ; If it is, it jumps to the end of the multiplication.
 
@@ -42,13 +43,13 @@ PUT R1      ; R1 = ACC (Store the new Result_Low).
 ; PC = 24
 ; BCS offset = (INCREMENT_HIGH PC) - (Current PC)
 ; INCREMENT_HIGH is at PC=28. Offset = 28 - 24 = 4.
-BCS 4       ; If Carry flag is set, branch to INCREMENT_HIGH (PC + 4)
+BCS INCREMENT_HIGH ; If Carry flag is set, branch to INCREMENT_HIGH (PC + 4)
 
 ; PC = 26
 ; If no carry from the low byte addition, jump to DECREMENT_COUNTER.
 ; JMPI offset = (DECREMENT_COUNTER PC) - (Current PC)
 ; DECREMENT_COUNTER is at PC=34. Offset = 34 - 26 = 8.
-JMPI 8      ; Jump to DECREMENT_COUNTER (PC + 8), skipping the carry handling block.
+JMPI DECREMENT_COUNTER ; Jump to DECREMENT_COUNTER (PC + 8), skipping the carry handling block.
 
 ; --- Handle Carry: Increment Result_High ---
 INCREMENT_HIGH:
@@ -72,7 +73,7 @@ PUT R0      ; R0 = ACC (Update Counter)
 ; Jump back to start of loop (LOOP_MUL).
 ; JMPI offset = (LOOP_MUL PC) - (Current PC)
 ; LOOP_MUL is at PC=14. Offset = 14 - 40 = -26.
-JMPI -26    ; Jump back to LOOP_MUL (PC - 26)
+JMPI LOOP_MUL ; Jump back to LOOP_MUL (PC - 26)
 
 ; --- End of Multiplication ---
 END_MUL:
