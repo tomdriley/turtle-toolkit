@@ -339,6 +339,7 @@ def test_bz_instruction_taken(simulator):
     # Test the BZ instruction
     source = """
     SET 0
+    NOP
     BZ 4
     SET 1
     HALT
@@ -356,6 +357,7 @@ def test_bz_instruction_not_taken(simulator):
     # Test the BZ instruction
     source = """
     SET 1
+    NOP
     BZ 4
     SET 0
     HALT
@@ -373,6 +375,7 @@ def test_bnz_instruction_taken(simulator):
     # Test the BNZ instruction
     source = """
     SET 1
+    NOP
     BNZ 4
     SET 0
     HALT
@@ -424,6 +427,7 @@ def test_bp_instruction_not_taken(simulator):
     # Test the BP instruction
     source = """
     SET -1
+    NOP
     BP 4
     SET 1
     HALT
@@ -441,6 +445,7 @@ def test_bn_instruction_taken(simulator):
     # Test the BN instruction
     source = """
     SET -1
+    NOP
     BN 4
     SET 0
     HALT
@@ -505,6 +510,33 @@ def test_bcs_instruction_not_taken(simulator):
     assert state.modules[REGISTER_FILE_NAME].registers[
         RegisterIndex.ACC
     ] == DataBusValue(0)
+
+
+def test_add_instruction_carry_flag(simulator):
+    """Test if ADD instruction sets carry flag like ADDI does"""
+    source = """
+    SET 0xFF
+    PUT R0
+    SET 6
+    ADD R0      ; This should set carry flag (0xFF + 6 = 0x105)
+    BCS CARRY_SET
+    SET 0       ; If carry not set, ACC = 0
+    HALT
+    CARRY_SET:
+    SET 0xAA    ; If carry set, ACC = 0xAA  
+    HALT
+    """
+    binary = Assembler.assemble(source)
+    simulator.load_binary(binary)
+    simulator.run_until_halt()
+
+    state = simulator.get_state()
+    acc_value = state.modules[REGISTER_FILE_NAME].registers[RegisterIndex.ACC]
+
+    # Should be 0xAA if carry flag works with ADD instruction
+    assert acc_value == DataBusValue(
+        0xAA
+    ), f"ADD instruction should set carry flag, but ACC = 0x{acc_value:02X}"
 
 
 def test_bcc_instruction_taken(simulator):
@@ -683,28 +715,29 @@ def test_all_registers(simulator):
 def test_long_program(simulator):
     # Test a long program that runs for many cycles
     source = """
-        SET 0
-        PUT R1
-        PUT R2
-        SET 200
-        PUT R3
-        SET 100
-        PUT R0
-        GET R0
-        BZ 26
-        GET R1
-        ADD R3
-        PUT R1
-        BCS 4
-        JMPI 8
-        GET R2
-        ADDI 1
-        PUT R2
-        GET R0
-        SUBI 1
-        PUT R0
-        JMPI -26
-        HALT
+        START:          SET 0
+                        PUT R1
+                        PUT R2
+                        SET 200
+                        PUT R3
+                        SET 100
+                        PUT R0
+        LOOP_MUL:       GET R0
+                        NOP
+                        BZ END_MUL
+                        GET R1
+                        ADD R3
+                        PUT R1
+                        BCS INCREMENT_HIGH
+                        JMPI DEC_COUNTER
+        INCREMENT_HIGH: GET R2
+                        ADDI 1
+                        PUT R2
+        DEC_COUNTER:    GET R0
+                        SUBI 1
+                        PUT R0
+                        JMPI LOOP_MUL
+        END_MUL:        HALT
     """
     binary = Assembler.assemble(source)
     simulator.load_binary(binary)
