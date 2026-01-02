@@ -48,8 +48,8 @@ class ALU(BaseModule):
         elif function == ArithLogicFunction.SUB:
             # Perform subtraction
             outputs.result = operand_a - operand_b
-            # Carry flag is set if there is a borrow
-            outputs.carry_flag = operand_a.unsigned_value() < operand_b.unsigned_value()
+            # Carry flag is set if there is NO borrow (matches RTL 'carry_flag = ~borrow')
+            outputs.carry_flag = operand_a.unsigned_value() >= operand_b.unsigned_value()
             # Overflow occurs if the sign of the result is different from the sign of
             # both operands
             outputs.signed_overflow = (
