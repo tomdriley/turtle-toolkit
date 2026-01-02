@@ -9,9 +9,9 @@ from turtle_toolkit.common.config import INSTRUCTION_WIDTH
 from turtle_toolkit.common.data_types import InstructionAddressBusValue
 from turtle_toolkit.modules.base_memory import BaseMemory
 
-# The RTL instruction memory is combinational (0-cycle latency).
-# Keep the simulator aligned so integration benchmarks don't hit the watchdog.
-INSTRUCTION_FETCH_LATENCY_CYCLES = 0
+# Default instruction fetch latency for the standalone simulator (in cycles).
+# Integration tests may override this to match RTL behavior.
+INSTRUCTION_FETCH_LATENCY_CYCLES = 10
 
 
 @dataclass

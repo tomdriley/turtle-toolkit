@@ -37,7 +37,14 @@ def assemble_program(source_code: str, output_format: str = "binstr") -> bytes:
     else:  # "bin"
         return Assembler.assemble(source_code)
 
-def simulate_program(binary: bytes, max_cycles: int = 10000, dump_memory: str = None, dump_registers: str = None) -> dict:
+def simulate_program(
+    binary: bytes,
+    max_cycles: int = 10000,
+    dump_memory: str = None,
+    dump_registers: str = None,
+    instruction_fetch_latency_cycles: int | None = None,
+    data_memory_latency_cycles: int | None = None,
+) -> dict:
     """Simulate binary program and return results.
     
     Args:
@@ -51,6 +58,12 @@ def simulate_program(binary: bytes, max_cycles: int = 10000, dump_memory: str = 
     """
     simulator = Simulator()
     simulator.reset()
+
+    # Optional runtime overrides (useful for RTL-alignment in integration tests)
+    if instruction_fetch_latency_cycles is not None:
+        simulator._instruction_memory.set_latency_cycles(instruction_fetch_latency_cycles)
+    if data_memory_latency_cycles is not None:
+        simulator._data_memory.set_latency_cycles(data_memory_latency_cycles)
     simulator.load_binary(binary)
     
     result = simulator.run_until_halt(max_cycles)

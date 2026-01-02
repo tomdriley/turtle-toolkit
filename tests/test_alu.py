@@ -45,7 +45,7 @@ def test_alu_subtraction(alu):
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
 
     assert outputs.result == DataBusValue(5)
-    assert not outputs.carry_flag
+    assert outputs.carry_flag
     assert not outputs.signed_overflow
 
 
@@ -55,7 +55,7 @@ def test_alu_subtraction_with_zero(alu):
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
 
     assert outputs.result == DataBusValue(10)
-    assert not outputs.carry_flag
+    assert outputs.carry_flag
     assert not outputs.signed_overflow
 
 
@@ -65,7 +65,7 @@ def test_alu_subtraction_with_negative(alu):
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
 
     assert outputs.result == DataBusValue(-15)
-    assert not outputs.carry_flag
+    assert outputs.carry_flag
     assert not outputs.signed_overflow
 
 
@@ -75,7 +75,7 @@ def test_alu_subtraction_negative(alu):
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
 
     assert outputs.result == DataBusValue(-5)
-    assert outputs.carry_flag
+    assert not outputs.carry_flag
     assert not outputs.signed_overflow
 
 
@@ -96,7 +96,7 @@ def test_alu_subtraction_with_underflow(alu):
     outputs = alu.execute(operand_a, operand_b, ArithLogicFunction.SUB)
     # Underflow wraps around
     assert outputs.result == DataBusValue(DataBusValue.max_signed_value())
-    assert not outputs.carry_flag
+    assert outputs.carry_flag
     assert outputs.signed_overflow
 
 

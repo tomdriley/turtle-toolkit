@@ -6,8 +6,9 @@ Date: 2025-05-04
 from turtle_toolkit.common.data_types import DataAddressBusValue, DataBusValue
 from turtle_toolkit.modules.base_memory import BaseMemory
 
-# The RTL data memory read path is combinational (0-cycle latency).
-MEMORY_LATENCY_CYCLES = 0
+# Default memory latency for the standalone simulator (in cycles).
+# Integration tests may override this to match RTL behavior.
+MEMORY_LATENCY_CYCLES = 10
 
 
 class DataMemory(BaseMemory[DataAddressBusValue, DataBusValue]):

@@ -361,6 +361,7 @@ class Assembler:
         source_code: str,
         input_filename: str,
         comment_level: str = "stripped",
+        one_byte_per_line: bool = False,
     ) -> Tuple[bytes, str]:
         """
         Assemble source code and return binary with binary string format.
@@ -375,17 +376,30 @@ class Assembler:
         """
         if comment_level == "full":
             binary, source_lines = Assembler.assemble_with_full_source_info(source_code)
-            formatted_text = OutputFormatter.format_binary_string_full(
-                binary, input_filename, source_lines
+            formatted_text = Assembler.format_binary_string(
+                binary=binary,
+                input_filename=input_filename,
+                comment_level=comment_level,
+                source_lines=source_lines,
+                one_byte_per_line=one_byte_per_line,
             )
         elif comment_level == "stripped":
             binary, instructions = Assembler.assemble_with_source_info(source_code)
-            formatted_text = OutputFormatter.format_binary_string_stripped(
-                binary, input_filename, instructions
+            formatted_text = Assembler.format_binary_string(
+                binary=binary,
+                input_filename=input_filename,
+                comment_level=comment_level,
+                instructions=instructions,
+                one_byte_per_line=one_byte_per_line,
             )
         else:  # comment_level == "none"
             binary = Assembler.assemble(source_code)
-            formatted_text = OutputFormatter.format_binary_string_none(binary)
+            formatted_text = Assembler.format_binary_string(
+                binary=binary,
+                input_filename=input_filename,
+                comment_level=comment_level,
+                one_byte_per_line=one_byte_per_line,
+            )
 
         return binary, formatted_text
 
@@ -422,6 +436,71 @@ class Assembler:
 
         return binary, formatted_text
 
+    @staticmethod
+    def format_binary_string(
+        *,
+        binary: bytes,
+        input_filename: str,
+        comment_level: str = "stripped",
+        instructions: Optional[List[Instruction]] = None,
+        source_lines: Optional[List[SourceLine]] = None,
+        one_byte_per_line: bool = False,
+    ) -> str:
+        """Format already-assembled binary as a .binstr text file.
+
+        This is intentionally separated from assembly so callers can pad `binary`
+        to a fixed length before formatting.
+        """
+        if one_byte_per_line:
+            if comment_level == "full":
+                raise ValueError(
+                    "one_byte_per_line output is not compatible with comment_level='full' "
+                    "(full output includes non-instruction lines and is not a memory image)."
+                )
+            if comment_level == "stripped" and instructions is not None:
+                return OutputFormatter.format_binary_string_stripped_bytes(
+                    binary, input_filename, instructions
+                )
+            return OutputFormatter.format_binary_string_none_bytes(binary)
+
+        if comment_level == "full":
+            if source_lines is None:
+                raise ValueError("source_lines must be provided for comment_level='full'")
+            return OutputFormatter.format_binary_string_full(
+                binary, input_filename, source_lines
+            )
+        if comment_level == "stripped":
+            if instructions is None:
+                raise ValueError(
+                    "instructions must be provided for comment_level='stripped'"
+                )
+            return OutputFormatter.format_binary_string_stripped(
+                binary, input_filename, instructions
+            )
+        return OutputFormatter.format_binary_string_none(binary)
+
+    @staticmethod
+    def format_hex_string(
+        *,
+        binary: bytes,
+        input_filename: str,
+        comment_level: str = "stripped",
+        instructions: Optional[List[Instruction]] = None,
+        source_lines: Optional[List[SourceLine]] = None,
+    ) -> str:
+        """Format already-assembled binary as a .hexstr text file."""
+        if comment_level == "full":
+            if source_lines is None:
+                raise ValueError("source_lines must be provided for comment_level='full'")
+            return OutputFormatter.format_hex_string_full(binary, input_filename, source_lines)
+        if comment_level == "stripped":
+            if instructions is None:
+                raise ValueError(
+                    "instructions must be provided for comment_level='stripped'"
+                )
+            return OutputFormatter.format_hex_string_stripped(binary, input_filename, instructions)
+        return OutputFormatter.format_hex_string_none(binary)
+
 
 class OutputFormatter:
     """Handles formatting of assembled binary data into various text formats."""
@@ -435,6 +514,11 @@ class OutputFormatter:
             )
             + "\n"
         )
+
+    @staticmethod
+    def format_binary_string_none_bytes(binary: bytes) -> str:
+        """Format binary data as one byte per line (memory image for $readmemb)."""
+        return "\n".join(f"{b:08b}" for b in binary) + "\n"
 
     @staticmethod
     def format_binary_string_stripped(
@@ -471,6 +555,44 @@ class OutputFormatter:
             binary_line = f"{byte1:08b} {byte2:08b}"
             binary_str += f"{binary_line}\n"
             byte_index += 2
+
+        return binary_str
+
+    @staticmethod
+    def format_binary_string_stripped_bytes(
+        binary: bytes,
+        input_filename: str,
+        instructions: List[Instruction],
+    ) -> str:
+        """Format binary data as one byte per line, with stripped instruction comments.
+
+        Each instruction emits two lines (opcode byte then operand byte). Any extra
+        padding bytes beyond the instruction stream are emitted with no comments.
+        """
+        binary_str = f"// Assembled from: {os.path.basename(input_filename)}\n"
+
+        byte_index = 0
+        for instruction in instructions:
+            if byte_index >= len(binary):
+                break
+
+            byte1 = binary[byte_index]
+            byte2 = binary[byte_index + 1] if (byte_index + 1) < len(binary) else 0
+            line1 = f"{byte1:08b}"
+            line2 = f"{byte2:08b}"
+
+            if instruction.source_line:
+                source_comment = instruction.source_line.split(";")[0].strip()
+                binary_str += f"{line1:<8} // {source_comment}\n"
+            else:
+                binary_str += f"{line1}\n"
+
+            binary_str += f"{line2}\n"
+            byte_index += 2
+
+        while byte_index < len(binary):
+            binary_str += f"{binary[byte_index]:08b}\n"
+            byte_index += 1
 
         return binary_str
 

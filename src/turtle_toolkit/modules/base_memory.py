@@ -30,6 +30,11 @@ class BaseMemory(BaseModule, Generic[AddressType, DataType]):
         super().__init__(name, self.state)
         self._latency_cycles = latency_cycles
 
+    def set_latency_cycles(self, latency_cycles: int) -> None:
+        if latency_cycles < 0:
+            raise ValueError("latency_cycles must be >= 0")
+        self._latency_cycles = latency_cycles
+
     def _start_operation(
         self, address: AddressType, data: Optional[DataType] = None
     ) -> None:

@@ -158,3 +158,34 @@ def test_halt_macro():
 
     binary = Assembler.encode_instruction(instructions[0])
     assert binary == INSTRUCTION_HALT
+
+
+def test_binstr_one_byte_per_line_with_padding():
+    source = """
+    NOP
+    HALT
+    """
+
+    binary, instructions = Assembler.assemble_with_source_info(source)
+    assert len(binary) == 4  # 2 instructions
+
+    padded = binary + b"\x00" * 4
+    formatted = Assembler.format_binary_string(
+        binary=padded,
+        input_filename="inline.asm",
+        comment_level="stripped",
+        instructions=instructions,
+        one_byte_per_line=True,
+    )
+
+    # Extract byte tokens ignoring comments and header
+    tokens = []
+    for line in formatted.splitlines():
+        if line.startswith("//") or not line.strip():
+            continue
+        line = line.split("//", 1)[0].strip()
+        if line:
+            tokens.append(line)
+
+    assert len(tokens) == len(padded)
+    assert tokens == [f"{b:08b}" for b in padded]

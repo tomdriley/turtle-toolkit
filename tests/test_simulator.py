@@ -579,9 +579,8 @@ def test_watchdog_timer(simulator):
     # Test that the watchdog timer works by creating an infinite loop
     source = """
     ; An infinite loop that never halts
-    SET 0
-    JMPI 0  ; Jump back to the same instruction, creating an infinite loop
-    HALT     ; This should never be reached
+    LOOP: NOP
+    JMPI LOOP  ; Jump back forever
     """
     binary = Assembler.assemble(source)
     simulator.load_binary(binary)

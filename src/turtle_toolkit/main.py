@@ -154,6 +154,7 @@ def assemble_file(
     format: AssemblerFormats = AssemblerFormats.BIN,
     output_length: int = 0,
     comment_level: CommentLevel = CommentLevel.STRIPPED,
+    binstr_byte_per_line: bool = False,
 ) -> bytes:
     """Assemble the input file and save to output file if specified."""
     if not output_file:
@@ -166,18 +167,37 @@ def assemble_file(
 
     source_code = read_text_file(input_file)
     try:
-        # Handle different output formats
+        # Assemble, then apply padding (so text formats can include the padded bytes too)
         if format == AssemblerFormats.BIN:
             binary = Assembler.assemble(source_code)
-            formatted_text = ""
+            instructions = None
+            source_lines = None
         elif format == AssemblerFormats.BINARY_STRING:
-            binary, formatted_text = Assembler.assemble_to_binary_string(
-                source_code, input_file, comment_level.value
-            )
+            if comment_level == CommentLevel.FULL:
+                binary, source_lines = Assembler.assemble_with_full_source_info(
+                    source_code
+                )
+                instructions = None
+            elif comment_level == CommentLevel.STRIPPED:
+                binary, instructions = Assembler.assemble_with_source_info(source_code)
+                source_lines = None
+            else:  # NONE
+                binary = Assembler.assemble(source_code)
+                instructions = None
+                source_lines = None
         elif format == AssemblerFormats.HEX_STRING:
-            binary, formatted_text = Assembler.assemble_to_hex_string(
-                source_code, input_file, comment_level.value
-            )
+            if comment_level == CommentLevel.FULL:
+                binary, source_lines = Assembler.assemble_with_full_source_info(
+                    source_code
+                )
+                instructions = None
+            elif comment_level == CommentLevel.STRIPPED:
+                binary, instructions = Assembler.assemble_with_source_info(source_code)
+                source_lines = None
+            else:  # NONE
+                binary = Assembler.assemble(source_code)
+                instructions = None
+                source_lines = None
         else:
             raise ValueError(f"Unsupported format: {format}")
 
@@ -188,13 +208,29 @@ def assemble_file(
                 f"Output length {output_length} is less than the assembled binary length {binary_length}"
             )
         if output_length > 0 and binary_length < output_length:
-            # Pad the binary to the specified length with zeroes
             binary += b"\x00" * (output_length - binary_length)
 
-        # Write the output based on format
+        # Format output
         if format == AssemblerFormats.BIN:
             write_binary_file(output_file, binary)
-        else:
+        elif format == AssemblerFormats.BINARY_STRING:
+            formatted_text = Assembler.format_binary_string(
+                binary=binary,
+                input_filename=input_file,
+                comment_level=comment_level.value,
+                instructions=instructions,
+                source_lines=source_lines,
+                one_byte_per_line=binstr_byte_per_line,
+            )
+            write_text_file(output_file, formatted_text)
+        else:  # HEX_STRING
+            formatted_text = Assembler.format_hex_string(
+                binary=binary,
+                input_filename=input_file,
+                comment_level=comment_level.value,
+                instructions=instructions,
+                source_lines=source_lines,
+            )
             write_text_file(output_file, formatted_text)
 
         logger.info(f"Assembly successful: {binary_length//2} instructions written")
@@ -343,7 +379,12 @@ def main() -> None:
 
     if args.command == "assemble":
         assemble_file(
-            args.input_file, args.output, args.format, args.output_length, args.comments
+            args.input_file,
+            args.output,
+            args.format,
+            args.output_length,
+            args.comments,
+            args.binstr_byte_per_line,
         )
 
     elif args.command == "simulate":

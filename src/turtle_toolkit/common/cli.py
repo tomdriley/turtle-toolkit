@@ -75,6 +75,15 @@ def parse_args() -> argparse.Namespace:
         help="Length of output binary file in bytes. If 0, the assembler will determine the length automatically.",
     )
 
+    assemble_parser.add_argument(
+        "--binstr-byte-per-line",
+        action="store_true",
+        help=(
+            "When --format=binstr, write one byte per line (memory image for $readmemb). "
+            "Default binstr output is two bytes per line (one instruction per line)."
+        ),
+    )
+
     # Simulator command
     simulate_parser = subparsers.add_parser("simulate", help="Simulate binary code")
     simulate_parser.add_argument("input_file", type=str, help="File to simulate")
